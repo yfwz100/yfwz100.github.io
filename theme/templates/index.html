@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block head %}
+  {{ super() }}
+  <meta name="author" content="{{ AUTHOR }}">
+  <meta name="description" content="{{ META_DESCRIPTION|striptags }}">
+{% endblock %}
+
+{% block content %}
+  {% block page_title %}{% endblock %}
+  <div>
+    {% for article in articles_page.object_list %}
+      <div class="post mini-post">
+        <div class="row">
+          <div class="col-md-3">
+            <p class="post-date">
+              <a class="text-muted" href="/{{ article.url }}" title="{{ article.date.isoformat() }}">{{ article.date|strftime('%Y年%b月%d日') }}</a>
+            </p>
+            <p class="post-category">
+              <a href="{{ SITEURL }}/{{ article.category.url }}">{{ article.category }}</a>
+            </p>
+            {% if article.author and SHOW_ARTICLE_AUTHOR %}
+              <address class="post-author">
+                by <a href="{{ SITEURL }}/{{ article.author.url }}">{{ article.author }}</a>
+              </address>
+            {% endif %}
+          </div>
+          <div class="col-md-9">
+            <h2 class="post-title">
+              <a href="/{{ article.url }}" title="Permalink to {{ article.title|striptags }}">{{ article.title }}</a>
+            </h2>
+            <div class="post-content">
+              {{ article.content|striptags|truncate(256) }}
+            </div>
+          </div>
+        </div>
+      </div>
+      <hr/>
+    {% endfor %}
+  </div>
+  {% include 'include/pagination.html' %}
+</div>
+{% endblock %}

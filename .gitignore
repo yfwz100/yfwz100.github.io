@@ -1,0 +1,4 @@
+# Ignore complied python scripts.
+*.pyc
+# Ignore outputs
+output/
