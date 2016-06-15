@@ -1,5 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*- #
+
+"""
+The blog configuration in pelican.
+"""
+
 from __future__ import unicode_literals
 
 AUTHOR = 'yfwz100'
@@ -22,7 +27,7 @@ TIMEZONE = 'Asia/Shanghai'
 DEFAULT_LANG = 'zh_CN'
 
 # Feed generation is usually not desired when developing
-FEED_ALL_ATOM = None
+FEED_ALL_ATOM = True
 CATEGORY_FEED_ATOM = None
 TRANSLATION_FEED_ATOM = None
 AUTHOR_FEED_ATOM = None
@@ -34,19 +39,19 @@ TAGS_ON_MENU = True
 ARCHIVES_ON_MENU = True
 PAGES_ON_MENU = True
 MENU_ITEMS = (
-  ('首页', '/'),
+    ('首页', '/'),
 )
 
 # Blogroll
 LINKS = (
-  ('52nlp', 'http://www.52nlp.cn'),
+    ('52nlp', 'http://www.52nlp.cn'),
 )
 
 # Social widget
 SOCIAL = (
-  ('@yfwz100', 'http://weibo.com/yfwz100'),
-  ('简书', 'http://www.jianshu.com/users/6edeb5b9e00b/latest_articles'),
-  ('豆瓣', 'http://www.douban.com/people/yfwz100')
+    ('@yfwz100', 'http://weibo.com/yfwz100'),
+    ('简书', 'http://www.jianshu.com/users/6edeb5b9e00b/latest_articles'),
+    ('豆瓣', 'http://www.douban.com/people/yfwz100')
 )
 
 DEFAULT_PAGINATION = 10
