@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+
+{% block title %}
+  {{ SITENAME }} &mdash; 存档
+{% endblock %}
+
+{% block content %}
+  <div class="archives-outer">
+    {% block page_title %}{% endblock %}
+    <div class="archives page">
+      {% for article in dates %}
+      <div class="card">
+        <div class="heading">
+          <span class="date">{{ article.locale_date }}</span>
+          <h1>
+            <a href="{{ article.url }}">{{ article.title }}</a>
+          </h1>
+        </div>
+        <div class="abstract">
+          {{ article.content|striptags|truncate(256) }}
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+{% endblock %}

@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+
+{% block title %}
+  {{ SITENAME }} &mdash; 所有分类
+{% endblock %}
+
+{% block content %}
+  <div class="categories page">
+    <h1>所有文章分类</h1>
+    <ul class="list-unstyled">
+      {% for category, articles in categories %}
+        <li><a href="{{ SITEURL }}/{{ category.url }}">{{ category }}</a></li>
+      {% endfor %}
+    </ul>
+  </div>
+{% endblock %}

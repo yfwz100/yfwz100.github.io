@@ -1,0 +1,27 @@
+<header>
+  <nav class="page">
+    <ul class="blog">
+      <li>
+        <a href="/" v-link="{path: '/', exact: true, activeClass: 'on'}">
+          {{ SITENAME }}
+        </a>
+      </li>
+      <li>
+        <a href="/categories.html" 
+           v-link="{path: '/categories', activeClass: 'on'}">分类</a>
+      </li>
+      <li>
+        <a href="/tags.html" v-link="{path: '/tags', activeClass: 'on'}">标签</a>
+      </li>
+      <li>
+        <a href="/archives.html"
+           v-link="{path: '/archives', activeClass: 'on'}">存档</a>
+      </li>
+    </ul>
+    <ul class="social">
+      <li><a href="{{ WEIBO_ADDRESS }}" class="fa fa-weibo"></a></li>
+      <li><a href="{{ GITHUB_ADDRESS }}" class="fa fa-github"></a></li>
+      <li><a href="{{ GITOSC_ADDRESS }}" class="fa fa-git"></a></li>
+    </ul>
+  </nav>
+</header>

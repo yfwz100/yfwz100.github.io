@@ -11,10 +11,11 @@ AUTHOR = 'yfwz100'
 SITENAME = "Zhi 的博客"
 META_DESCRIPTION = '游戏|机器学习|数据挖掘|可视化'
 # PROFILE_IMAGE = '/theme/img/0315.jpg'
-PROFILE_IMAGE = ''
 SITEURL = '/'
 EMAIL_ADDRESS = 'yfwz100@163.com'
 GITHUB_ADDRESS = 'https://github.com/yfwz100'
+GITOSC_ADDRESS = 'http://git.oschina.net/zhi'
+WEIBO_ADDRESS = 'http://weibo.com/yfwz100'
 SITE_SUBTEXT = '技术改变世界，数据改变生活'
 DISQUS_SITENAME = 'zhi'
 
@@ -27,7 +28,7 @@ TIMEZONE = 'Asia/Shanghai'
 DEFAULT_LANG = 'zh_CN'
 
 # Feed generation is usually not desired when developing
-FEED_ALL_ATOM = True
+FEED_ALL_ATOM = None
 CATEGORY_FEED_ATOM = None
 TRANSLATION_FEED_ATOM = None
 AUTHOR_FEED_ATOM = None
@@ -59,4 +60,4 @@ DEFAULT_PAGINATION = 10
 # Uncomment following line if you want document-relative URLs when developing
 #RELATIVE_URLS = True
 
-THEME = './theme/'
+THEME = './theme/fastflat'

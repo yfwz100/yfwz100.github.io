@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+
+{% block title %}
+  {{ SITENAME }} &mdash; 所有标签
+{% endblock %}
+
+{% block content %}
+  <div class="tags page">
+    <h1>{{ SITENAME }} 里的所有标签</h1>
+    <ul class="list-unstyled">
+      {% for tag, articles in tags|sort %}
+        <li>
+          <a href="{{ SITEURL }}/{{ tag.url }}">{{ tag }}</a>
+          ({{ articles|count }})
+        </li>
+      {% endfor %}
+    </ul>
+  </div>
+{% endblock %}

@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+
+{% block head %}
+  {{ super() }}
+  <meta name="author" content="{{ AUTHOR }}">
+  <meta name="description" content="{{ META_DESCRIPTION|striptags }}">
+{% endblock %}
+
+{% block content %}
+  {% if not articles_page.has_previous() %}
+    <div class="home-outer">
+      <div class="overlay"></div>
+      <div class="home page">
+        <div class="card">
+          <div class="image-wrapper">
+            <div class="image">
+              <img src="https://uploads.branded.me/571c97af4f0468000df50668/571c980adf21bf000c57a3e3.png" />
+            </div>
+          </div>
+          <div class="text-wrapper">
+            <div class="text">
+              <h1 placeholder="Your name">Zhi Wang</h1>
+              <p placeholder="Add your title or professional tagline">
+                Student of Northeastern University China
+              </p>
+              <p>
+                Search for something interesting...
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  {% endif %}
+  <div class="archives-outer">
+    {% block page_title %}{% endblock %}
+    <div class="archives page">
+      {% for article in articles_page.object_list %}
+      <div class="card">
+        <div class="heading">
+          <span class="date">{{ article.locale_date }}</span>
+          <h1>
+            <a href="{{ article.url }}">{{ article.title }}</a>
+          </h1>
+        </div>
+        <div class="abstract">
+          {{ article.content|striptags|truncate(256) }}
+        </div>
+      </div>
+      {% endfor %}
+      {% include 'include/pagination.html' %}
+    </div>
+  </div>
+{% endblock %}

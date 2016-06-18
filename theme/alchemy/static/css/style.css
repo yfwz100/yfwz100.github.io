@@ -7358,7 +7358,9 @@ a:hover {
   font-size: 16px;
 }
 .post.mini-post {
-  padding: 30px 0;
+  /*padding: 30px 0;*/
+  padding-top: 2em;
+  height: 20em;
 }
 .post.mini-post:last-child {
   border-bottom: none;
@@ -7369,9 +7371,30 @@ a:hover {
   margin-bottom: 10px;
   margin-top: 0;
 }
-.post.mini-post .post-date {
+/*.post.mini-post .post-date {
   font-family: Frutiger, "Frutiger Linotype", Univers, Calibri, "Gill Sans", "Gill Sans MT", "Myriad Pro", Myriad, "DejaVu Sans Condensed", "Liberation Sans", "Nimbus Sans L", Tahoma, Geneva, "Helvetica Neue", Helvetica, Arial, sans-serif;
   font-size: 18px;
+}*/
+.post.mini-post .post-date {
+  text-align: center;
+  width: 4em;
+  border: 1px solid #ccc;
+  border-radius: 0.3em;
+  margin-right: 1em;
+}
+.post.mini-post .post-date .month {
+  background-color: teal;
+  color: white;
+  display: block;
+}
+.post.mini-post .post-date .day {
+  font-size: 2em;
+  display: block;
+}
+.post.mini-post .post-date .year {
+  margin: 0 0.2em;
+  border-top: 1px solid #ccc;
+  display: block;
 }
 .post .post-content h1 {
   font-size: 1.6em;

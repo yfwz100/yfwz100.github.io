@@ -1,0 +1,244 @@
+html, body {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  position: relative;
+  font-family: 'PingFang SC', '微软雅黑', 'Droid Sans', sans;
+  background-color: #efefef;
+}
+
+header {
+  background-color: #87a6fa;
+  color: white;
+  font-size: 1.1em;
+  padding-top: 0.8em;
+}
+
+footer {
+  min-height: 8em;
+}
+
+footer .page {
+  padding: 1em 0;
+}
+
+footer p {
+  color: #acacac;
+}
+
+.page {
+  margin: auto;
+  max-width: 800px;
+}
+
+/* navigation section */
+
+nav.page {
+  padding: 0;
+}
+
+nav.page:after {
+  content: ' ';
+  display: block;
+  clear: both;
+}
+
+nav.page ul {
+  padding: 0;
+  margin: 0;
+}
+
+nav.page ul.blog {
+  float: left;
+}
+
+nav.page ul.social {
+  float: right;
+}
+
+nav.page ul li {
+  display: inline-block;
+  position: relative;
+  padding: 0.5em;
+  line-height: 2;
+}
+
+nav.page ul li a.on {
+  color: #f9f9c9;
+  font-weight: 600;
+}
+
+nav.page ul li a:after {
+  content: ' ';
+  display: block;
+  width: 0px;
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translate(-50%, 0);
+  border-left: 0.5em solid transparent;
+  border-right: 0.5em solid transparent;
+  border-bottom: 0 solid white;
+  transition-duration: 0.5s;
+}
+
+nav.page ul li a.on:after {
+  border-bottom-width: 0.5em;
+}
+
+nav.page ul li:hover a:after {
+/*  border-bottom: 0.5em solid white;*/
+  border-bottom-width: 0.3em;
+}
+
+nav.page a {
+  text-decoration: none;
+  color: white;
+}
+
+nav.page a:hover {
+  color: yellow;
+}
+
+/* The content section */
+
+.content {
+  padding: 1em 0;
+  background-color: white;
+}
+
+/* Home Page */
+
+.home-outer {
+/*  background-image: url(//s3.amazonaws.com/branded.me/gallery/architecture/5.jpg);*/
+  background-size: cover;
+  background-position: bottom;
+  position: relative;
+}
+
+.home-outer .overlay {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 0;
+/*
+  background-color: #888;
+  opacity: 0.6;
+*/
+}
+
+.home.page {
+  padding: 3em 0;
+  position: relative;
+}
+
+.home.page .card {
+  text-align: center;
+}
+
+.home.page .card img {
+  border-radius: 50%;
+}
+
+/* Archives Page */
+
+.archives.page .card {
+  padding-top: 0.5em;
+  padding-bottom: 1em;
+}
+
+.archives.page .card .heading {
+  position: relative;
+}
+
+.archives.page .card .heading h1 {
+  font-size: 1.2em;
+}
+
+.archives.page .card .heading a {
+  color: #666;
+}
+
+.archives.page .card .heading .date {
+  position: absolute;
+  right: 0;
+  line-height: 1.2;
+  color: #ccc;
+}
+
+.archives.page .card .heading:before {
+  content: '#';
+  position: absolute;
+  left: -1em;
+  color: skyblue;
+  font-size: 1.2em;
+}
+
+.archives.page .pagination {
+  margin: 0;
+  padding: 0;
+  text-align: center;
+}
+
+.archives.page .pagination li {
+  display: inline-block;
+}
+
+/* article page */
+
+.post.page .post-title {
+  text-align: center;
+}
+
+.post.page .post-title a {
+  text-decoration: none;
+  color: #666;
+}
+
+.post.page .list-inline {
+  padding: 0;
+  margin: 0;
+  list-style: none;
+  text-align: center;
+}
+
+.post.page .list-inline li {
+  display: inline-block;
+  color: #acacac;
+}
+
+.post.page .post-author {
+  text-decoration: none;
+  font-style: normal;
+}
+
+.post.page .list-inline a {
+  color: #acacac;
+  text-decoration: none;
+}
+
+.post.page .list-inline .tag {
+  display: inline-block;
+  background-color: orange;
+  color: white;
+  border-radius: 0.2em;
+  padding: 0 0.2em;
+}
+
+.post.page .post-content p {
+  text-indent: 2em;
+  line-height: 1.4;
+}
+
+.post.page .highlight {
+  background-color: #efefef;
+  padding: 1em;
+  border-radius: 0.5em;
+}
+
+.post.page .highlight pre {
+  margin: 0;
+}
