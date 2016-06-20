@@ -1,0 +1,49 @@
+doctype html
+html
+  head
+    meta(charset="utf-8")
+    title
+      block title
+        | #{config.title}
+    meta(name="viewport" content="width=device-width, initial-scale=1")
+    
+    link(rel="stylesheet", href="//cdn.bootcss.com/font-awesome/4.6.3/css/font-awesome.min.css")
+    != css('css/base')
+    
+    include ./mathjax
+    include ./ta-qq
+
+  body
+    mixin header(active)
+      header
+        nav.page
+          ul.brand
+            li
+              a(href='/', class=active=='/'?'on':null)= config.title
+
+          ul.blog
+
+            // List other items on menu.
+            each url, name in theme.menu
+              li.menu-item
+                a(href=url, class=active==url?'on':null)= __(name)
+
+          ul.social
+            each url, name in config.social
+              li
+                a(href=url, class="fa fa-#{name}")
+                  i.sr-only= name
+  
+    block header
+      +header('/')
+             
+    block container
+      .wrap
+      
+    footer
+      .page
+        address.author &copy; yfwz100
+        .hexo-powered 
+          | 博客由 
+          a(href="http://www.hexo.io") Hexo
+          |  驱动

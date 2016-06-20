@@ -1,0 +1,29 @@
+extends _partial/base
+
+block header
+  +header('/archives')
+
+block container
+ .archives.wrap
+  .overlay
+  .page
+    block page-heading
+    each post in page.posts.data
+      .card
+        .heading
+          span.date= post.date.format(config.date_format)
+          h1
+            a(href=post.path)= post.title
+            
+        if post.excerpt
+          .body!= post.excerpt
+        else
+          .body …
+        
+        .meta
+          a.more(href="")= __(theme.excerpt_link)
+
+    if page.total > 1
+      nav.page-nav
+        !=paginator({prev_text:"&laquo;"+ __('prev'), next_text:__('next') +"&raquo;"})
+      

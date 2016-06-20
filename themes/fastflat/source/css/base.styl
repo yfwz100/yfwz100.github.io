@@ -1,0 +1,251 @@
+html, body
+  margin 0
+  padding 0
+  width 100%
+  height 100%
+  position relative
+  
+body
+  background-color #efefef
+  font-family 'PingFang SC', '微软雅黑', 'Droid Sans', sans
+  
+.page
+  margin auto
+  max-width 800px
+  
+.page
+  .page-heading
+    text-align center
+    font-size 1.2em
+    padding-top 1em
+
+.wrap
+  background-color white
+  padding 1em 0
+  min-height 3em
+
+header
+  background-color #87b1eb
+  font-size 1.1em
+  padding-top 0.8em
+  position relative
+  z-index 2
+  
+  nav.page
+    padding 0
+    
+    &:after
+      content ' '
+      display block
+      clear both
+    
+    ul
+      padding 0
+      margin 0
+      
+      &.brand
+        float left
+        font-family 'HanziPen SC', fantasy
+        font-weight 800
+      
+      &.blog
+        float left
+        color white
+        
+        &:before
+          content '{'
+          display inline-block
+          float left
+          padding 0.5em 0
+          line-height 2
+          font-family 'HanziPen SC', fantasy
+
+        &:after
+          content '}'
+          display inline-block
+          float right
+          padding 0.5em 0
+          line-height 2
+          font-family 'HanziPen SC', fantasy
+
+      &.brand, &.blog
+        li
+          &:hover
+            a:after
+              border-bottom-width 0.3em
+          
+          a
+            &:after
+              content ' '
+              display block
+              width 0px
+              position absolute
+              bottom 0
+              left 50%
+              transform translate(-50%, 0)
+              border-left 0.5em solid transparent
+              border-right 0.5em solid transparent
+              border-bottom 0 solid white
+              transition-duration 0.5s
+
+            &.on
+              color #f9f9c9
+              font-weight 600
+
+              &:hover
+                color #f9f9c9
+
+              &:after
+                border-bottom-width 0.5em
+        
+      &.social
+        float: right
+      
+      li // all lis
+        display inline-block
+        position relative
+        padding 0.5em
+        line-height 2
+        
+        a
+          text-decoration none
+          color white
+          transition 1s
+            
+          &:hover
+            color yellow
+
+.home
+  position relative
+  padding 5em 0
+  background-size cover
+  background-position center
+  
+  .overlay
+    position absolute
+    top 0
+    bottom 0
+    left 0
+    right 0
+    z-index 0
+    
+  .page
+    position relative
+    
+  .profile.card
+    text-align center
+    font-family 'HanziPen SC', fantasy
+    
+    img
+      border-radius 50%
+      
+.archives
+  
+  .card
+    padding-top 0.5em
+    padding-bottom 1em
+  
+    .heading
+      position relative
+      
+      h1
+        font-size 1.2em
+      
+      a
+        text-decoration none
+        color #666
+        
+      .date
+        float right
+        color #ccc
+      
+      &:before
+        content '#'
+        position absolute
+        left -1em
+        color skyblue
+        font-size 1.2em
+    
+    .body
+      color #888
+      
+    .meta
+      .more
+        font-size 0.9em
+        color #888
+      
+  .page-nav
+    // border-top 1px solid #ccc
+    margin 0
+    padding 0.5em 0
+    text-align center
+    
+    span, a
+      display inline-block
+      padding 0 0.2em
+      text-decoration none
+      
+.tags.list
+  text-align center
+  
+  .tag
+    display inline-block
+    padding 1em 0
+    margin 0
+    
+    a
+      padding 0.3em
+      background-color orange
+      text-decoration none
+      border-top-left-radius 0.3em
+      border-bottom-left-radius 0.3em
+      float left
+  
+    &:after
+      content ''
+      float left
+      height 0
+      border-left 1em solid orange
+      border-top 1em solid transparent
+      border-bottom 1em solid transparent
+
+.post.wrap
+  .post-heading
+    text-align center
+    margin-bottom 1em
+  
+  .post-meta
+    text-align center
+    background-color #efefef
+    border-radius 0.5em
+    padding 0.5em
+    margin 0.5em 0
+    
+    .author
+      a
+        text-decoration none
+    
+    .tag
+      background-color orange
+      border-radius 0.3em
+      padding 0 0.3em
+      margin-left 0.2em
+      text-decoration none
+      color white
+    
+footer
+  min-height 5em
+  color #acacac
+    
+  address.author
+    font-style normal
+    position relative
+    display inline-block
+    padding-top 0.5em
+  
+  a
+    color #aaa
+    
+    &:hover
+      color #888
+    

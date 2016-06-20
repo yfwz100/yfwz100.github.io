@@ -1,0 +1,10 @@
+extends archive
+
+block title
+  | #{page.tag} | #{config.title}
+  
+block header
+  +header('/tags')
+  
+block page-heading
+  .page-heading 「 #{page.tag} 」标签下的文章

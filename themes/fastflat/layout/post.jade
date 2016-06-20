@@ -1,0 +1,22 @@
+extends _partial/base
+
+block container
+  .post.wrap
+    .page
+      .post-heading
+        h1= page.title
+        
+      .post-meta
+        | 由 
+        span.author
+          a(href="mailto: yfwz100@yeah.net") Wang Zhi
+        |  写于
+        span.date= page.date.format(config.date_format)
+        |  · 
+        span.tags
+          each tag in page.tags.data
+            a.tag(href="/" + tag.path)= tag.name
+        
+      .post-body!= page.content
+      
+      
