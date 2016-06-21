@@ -4,6 +4,19 @@ html, body
   width 100%
   height 100%
   position relative
+
+a
+  color #0e7cf1
+  transition 0.5s
+
+  &:hover
+    color blue
+
+  &:visited
+    color skyblue
+
+    &:hover
+      color #0e88f1
   
 body
   background-color #efefef
@@ -23,13 +36,14 @@ body
   background-color white
   padding 1em 0
   min-height 3em
+  box-shadow 0 5px 10px #ccc
 
 header
-  background-color #87b1eb
+  background-color #0e7cf1
   font-size 1.1em
   padding-top 0.8em
   position relative
-  z-index 2
+  box-shadow inset 0 -3px 15px #05f
   
   nav.page
     padding 0
@@ -83,7 +97,7 @@ header
               border-left 0.5em solid transparent
               border-right 0.5em solid transparent
               border-bottom 0 solid white
-              transition-duration 0.5s
+              transition-duration 0.2s
 
             &.on
               color #f9f9c9
@@ -112,130 +126,6 @@ header
           &:hover
             color yellow
 
-.home
-  position relative
-  padding 5em 0
-  background-size cover
-  background-position center
-  
-  .overlay
-    position absolute
-    top 0
-    bottom 0
-    left 0
-    right 0
-    z-index 0
-    
-  .page
-    position relative
-    
-  .profile.card
-    text-align center
-    font-family 'HanziPen SC', fantasy
-    
-    img
-      border-radius 50%
-      
-.archives
-  
-  .card
-    padding-top 0.5em
-    padding-bottom 1em
-    padding-left 1.5em
-    padding-right 1em
-  
-    .heading
-      position relative
-      
-      h1
-        font-size 1.2em
-      
-      a
-        text-decoration none
-        color #666
-        
-      .date
-        float right
-        color #ccc
-      
-      &:before
-        content '#'
-        position absolute
-        left -1em
-        color skyblue
-        font-size 1.2em
-    
-    .body
-      color #888
-      
-    .meta
-      .more
-        font-size 0.9em
-        color #888
-      
-  .page-nav
-    margin 0
-    padding 0.5em 0
-    text-align center
-    
-    span, a
-      display inline-block
-      padding 0 0.2em
-      text-decoration none
-      
-.tag-list
-  text-align center
-  padding 1em 0
-  margin auto
-  width 50%
-  
-  .tag-link
-    display inline-block
-    background-color skyblue
-    color white
-    border-radius 0.3em
-    padding 0.4em
-    margin 0.3em
-    text-decoration none
-    
-    .tag-count
-      display inline-block
-      border-radius 50%
-      margin-left 0.2em
-      width 1.4em
-      height 1.4em
-      background-color orange
-      color white
-  
-  &:after
-    content ' '
-    display block
-    clear both
-
-.post.wrap
-  .post-heading
-    text-align center
-    margin-bottom 1em
-  
-  .post-meta
-    text-align center
-    background-color #efefef
-    border-radius 0.5em
-    padding 0.5em
-    margin 0.5em 0
-    
-    .author
-      a
-        text-decoration none
-    
-    .tag
-      background-color orange
-      border-radius 0.3em
-      padding 0 0.3em
-      margin-left 0.2em
-      text-decoration none
-      color white
-    
 footer
   min-height 5em
   color #acacac
@@ -251,4 +141,9 @@ footer
     
     &:hover
       color #888
+
+@import "./_part/home"
+@import "./_part/archives"
+@import "./_part/tags"
+@import "./_part/post"
     
