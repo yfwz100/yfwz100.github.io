@@ -6,5 +6,5 @@ block header
 block container
   .tags.wrap
     .page
-      .page-heading 标签云
+      .page-heading= __('tagcloud')
       .tag-list!= list_tags({style: 'span', separator: ''})
