@@ -23,6 +23,8 @@ social:
   git: http://git.oschina.net/zhi
   weibo: http://weibo.com/yfwz100
 
+duoshuo: 'zhi-blog'
+
 # Directory
 source_dir: source
 public_dir: public
