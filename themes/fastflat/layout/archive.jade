@@ -21,7 +21,7 @@ block container
           .body …
         
         .meta
-          a.more(href="")= __(theme.excerpt_link)
+          a.more(href=post.path)= __(theme.excerpt_link)
 
     if page.total > 1
       nav.page-nav
