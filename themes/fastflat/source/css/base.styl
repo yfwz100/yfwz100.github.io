@@ -45,7 +45,6 @@ header
       
       &.brand
         float left
-        font-family 'HanziPen SC', fantasy
         font-weight 800
       
       &.blog
@@ -58,7 +57,6 @@ header
           float left
           padding 0.5em 0
           line-height 2
-          font-family 'HanziPen SC', fantasy
 
         &:after
           content '}'
@@ -66,7 +64,6 @@ header
           float right
           padding 0.5em 0
           line-height 2
-          font-family 'HanziPen SC', fantasy
 
       &.brand, &.blog
         li
@@ -144,6 +141,8 @@ header
   .card
     padding-top 0.5em
     padding-bottom 1em
+    padding-left 1.5em
+    padding-right 1em
   
     .heading
       position relative
@@ -175,7 +174,6 @@ header
         color #888
       
   .page-nav
-    // border-top 1px solid #ccc
     margin 0
     padding 0.5em 0
     text-align center
@@ -185,29 +183,34 @@ header
       padding 0 0.2em
       text-decoration none
       
-.tags.list
+.tag-list
   text-align center
+  padding 1em 0
+  margin auto
+  width 50%
   
-  .tag
+  .tag-link
     display inline-block
-    padding 1em 0
-    margin 0
+    background-color skyblue
+    color white
+    border-radius 0.3em
+    padding 0.4em
+    margin 0.3em
+    text-decoration none
     
-    a
-      padding 0.3em
+    .tag-count
+      display inline-block
+      border-radius 50%
+      margin-left 0.2em
+      width 1.4em
+      height 1.4em
       background-color orange
-      text-decoration none
-      border-top-left-radius 0.3em
-      border-bottom-left-radius 0.3em
-      float left
+      color white
   
-    &:after
-      content ''
-      float left
-      height 0
-      border-left 1em solid orange
-      border-top 1em solid transparent
-      border-bottom 1em solid transparent
+  &:after
+    content ' '
+    display block
+    clear both
 
 .post.wrap
   .post-heading

@@ -7,7 +7,4 @@ block container
   .tags.wrap
     .page
       .page-heading 标签云
-      .tags.list
-        each tag in site.tags.data
-          .tag
-            a(href=theme.menu.Tags + '/' + tag.name)= tag.name
+      .tag-list!= list_tags({style: 'span', separator: ''})
