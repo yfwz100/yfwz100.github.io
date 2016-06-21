@@ -1,7 +1,7 @@
 # Header
 menu:
-  Archives: /archives
-  Tags: /tags
+  archives: /archives
+  tags: /tags
 rss: /atom.xml
 
 category_dir: categories

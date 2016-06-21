@@ -7,10 +7,10 @@ block container
         h1= page.title
         
       .post-meta
-        | 由 
+        | #{__('from_author')}
         span.author
-          a(href="mailto: yfwz100@yeah.net") Wang Zhi
-        |  写于
+          a(href="mailto: yfwz100@yeah.net")= page.author || config.author
+        | #{__('write_at')}
         span.date= page.date.format(config.date_format)
         |  · 
         span.tags
@@ -18,5 +18,4 @@ block container
             a.tag(href="/" + tag.path)= tag.name
         
       .post-body!= page.content
-      
       

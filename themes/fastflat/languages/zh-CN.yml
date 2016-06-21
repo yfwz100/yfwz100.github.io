@@ -17,6 +17,7 @@ powered_by: 设计自
 rss_feed: RSS Feed
 category: 分类
 tag: 标签
-Archives: 存档
-Tags: 标签
+archives: 存档
 Read More: 阅读更多
+from_author: '由 '
+write_at: ' 写于 '
