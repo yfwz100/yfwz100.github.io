@@ -8,7 +8,8 @@ date: 2016-06-24 20:21:15
 
 
 CloudSim 的能耗模块是在 3.0 版本完善的。最早的工作可能在 2011 年到 2012 年之间，论文：
- - Anton Beloglazov, and Rajkumar Buyya, "[Optimal Online Deterministic Algorithms and Adaptive Heuristics for Energy and Performance Efficient Dynamic Consolidation of Virtual Machines in Cloud Data Centers](http://dx.doi.org/10.1002/cpe.1867)", Concurrency and Computation: Practice and Experience (CCPE), Volume 24, Issue 13, Pages: 1397-1420, John Wiley & Sons, Ltd, New York, USA, 2012
+
+> Anton Beloglazov, and Rajkumar Buyya, "[Optimal Online Deterministic Algorithms and Adaptive Heuristics for Energy and Performance Efficient Dynamic Consolidation of Virtual Machines in Cloud Data Centers](http://dx.doi.org/10.1002/cpe.1867)", Concurrency and Computation: Practice and Experience (CCPE), Volume 24, Issue 13, Pages: 1397-1420, John Wiley & Sons, Ltd, New York, USA, 2012
 
 <!-- more -->
 
@@ -56,7 +57,7 @@ CloudSim 的能耗模块是在 3.0 版本完善的。最早的工作可能在 20
     └── PowerModelSquare.java
 ```
 
-可以看出，对于能耗的模拟仿真， CloudSim 采用了一种侵入式的设计。为了获得性能参数，甚至改变了原来 CloudSim 的事件循环进行了修改。在数据收集方面，放弃了之前 CloudSim 论文发表时候用的 Sensor 类，而是采用在 `PowerDatacenter` 和 `VM` 等实体里嵌入数据收集的代码。分解起来有点费劲。
+为了支持能耗评估，CloudSim 实际上作出了不少的修改，并采用了一种侵入式的设计，不仅仅局限于 `power` 包。为了获得性能参数，甚至改变了原来 CloudSim 的事件循环进行了修改。在数据收集方面，放弃了之前 CloudSim 论文发表时候用的 Sensor 类，而是采用在 `PowerDatacenter` 和 `VM` 等实体里嵌入数据收集的代码。分解起来有点费劲。
 
 以下是简要的修改说明：
 1. 实体相关：
@@ -82,21 +83,50 @@ CloudSim 的能耗模块是在 3.0 版本完善的。最早的工作可能在 20
    * 最低利用率：`MinimumUtilization` 选择利用率最低的进行迁移，使性能损失减小
    * 随机选择（对照实验）：`RandomSelection`
 
-其选择虚拟机的基础主要基于资源利用率和能耗的历史统计量。基本的算法过程可以参考论文。
+其选择虚拟机的基本依据来自资源利用率和能耗的历史统计量，算法的具体过程可以参考论文。
 
-现在说说我认为分析上的一些瑕疵。对于能耗的仿真，只考虑了 CPU 的消耗，这是个复杂的分析问题。如果考虑所有的能耗，可能就很难进行优化。于是，作者采用了 CPU 利用率能耗模型。这个说法，在粗粒度下，也是得到文献引证的：
+对能耗的仿真模型定义在 `PowerModel`，这个借口只提供一个抽象方法，就是 `getPower(double):double` 从给定的资源利用率里推导出能耗。估计 CloudSim 的想法是对每个资源都建立一个利用率到能耗的映射，然后能耗是所有资源的累积和：
 
-- Kusic D, Kephart JO, Hanson JE, Kandasamy N, Jiang G. Power and performance management of virtualized computing environments via lookahead control. Cluster Computing 2009; 12(1):1–15.
-- Fan, Xiaobo, W. D. Weber, and L. A. Barroso. "Power provisioning for a warehouse-sized computer." Acm Sigarch Computer Architecture News 35.2(2007):13-23.
+$$ P = \sum_{u\in U} P_u(u) $$
 
-于是，作者采用了简单的线性模型、二次方模型以及从 [SPECPower 2008](http://www.spec.org/power_ssj2008/) 公布的 CPU 利用率和功耗的对应表。
+其中的 $P_u(u)$ 即建立的利用率到能耗的映射。对于 CloudSim Power 部分的论文和具体实现来说，只考虑了粗粒度下 CPU 的能耗代表整机能耗，具体的依据来源于
 
-但是也有细分的情况，说明能耗不仅仅依靠 CPU 利用率来调整：
+> Kusic D, Kephart JO, Hanson JE, Kandasamy N, Jiang G. Power and performance management of virtualized computing environments via lookahead control. Cluster Computing 2009; 12(1):1–15.
 
-- Kansal, Aman, et al. "Virtual machine power metering and provisioning." Acm Symposium on Cloud Computing ACM, 2010:39-50.
+另一篇文献同样说到这个事情，出自 Google 研究员的关于 CPU 到能耗的经验曲线模型：
 
-但是 RAM 和 Disk 消耗在低 CPU 占用率的地方，还是会占据很大一部分的能耗。不过论文也承认，详细考虑能耗模型是一件复杂的事情。
+> Fan, Xiaobo, W. D. Weber, and L. A. Barroso. "Power provisioning for a warehouse-sized computer." Acm Sigarch Computer Architecture News 35.2(2007):13-23.
 
-在实验部分，在考虑“过载”这个问题上，论文和实际实现可能有一定出入。论文中，分配 CPU 的时候，总的虚拟机核心数和物理机的核心数还是一致的，而过载的定义是在所有 VM 都满负载运行。但是实际中，一台物理机可以虚拟出很多 VM，总的 VM 核数应该是大于物理机的核数，以最大化利用CPU核心。再后来修改版里，CloudSim 3.0 也引入了这样的概念。但采用的是简单的分时调度。分时调度意味着，随着 VM 的增加，每个 VM 获得的实际 MIPS 比所请求的 MIPS 少，然而 VM 在实际的调度环境中，是可以进入休眠状态而基本不消耗资源。另外一点是调度器也没有考虑优先级的问题。
+形式化描述为：
 
-在 CloudSim 3.0 里还有一个问题，不同的 CloudletScheduler 可能导致不同的过载发生，即 cloudlet 的总消耗比 VM 还高，物理机的过载可能是由于 cloudlet 越界运行导致的。我觉得在虚拟机动态迁移调度的问题上，采用 CloudletScheduler 这样细粒度的程序调度器，模拟并行调度过程会产生很多不确定的问题。
+$$ P_{CPU}(u) = \alpha (2u - u^r) + \sigma $$
+
+思路都是用 CPU 能耗直接替代整机能耗。这个一方面确实是 CPU 在能耗方面占了主导，另一方面，则是由于分析的便捷性。
+
+当然，对能耗模型的调研，觉得这篇文章的说法比较靠谱：
+
+> Kansal, Aman, et al. "Virtual machine power metering and provisioning." Acm Symposium on Cloud Computing ACM, 2010:39-50.
+
+CPU 大约占了 60% 的能耗，其余的能耗大户包括 RAM 和磁盘。但是要对 CloudSim 进行扩展，不修改 `power` 包里的内容估计是做不到了。
+
+另外，对于多核架构来说，简单的线性模型也是很难说服的，在论文的实验部分，作者意识到这个问题，因此，还引用了标准组织 [SPECPower 2008](http://www.spec.org/power_ssj2008/) 公布的季度各主流服务器厂商的服务器 CPU 利用率和功耗的对应表作为关系映射。
+
+由于动态调度，涉及到一台物理主机服务多个 VM 的情况。大多数论文认为虚拟机放置是一种装箱问题，但实际上一台物理机可以服务的 VM 数目应该是不确定的。但是，要考虑“过载”（overload）的情况，作为一种性能损失的衡量。论文认为过载是由于所分配的 VM 都满载以后，可能违反一次 SLA（服务等级协定）。而这个定义感觉是不清晰的。实际上，物理核心数和 VM 要求的核心数可能存在不一致的情况。在典型的 Web 应用场景，实际上 CPU 满载的情况并不多，主要以 IO 处理为主。桌面应用满载的情况更低了，这个自己就可以验证。因此，多个 VM 共用一个核心也是完全可能的，也是资源极大化利用应该考虑的。
+
+在后来修改版里，CloudSim 3.0 引入了 `VmSchedulerTimeSharedOverSubscription` 类对满载的虚拟机进行调度。但采用的是简单的分时调度，采用 MIPS （每秒指令数）来量度：
+
+$$ MIPS\_{VM} = \min \left( \frac{MIPS\_{PM} }{n\_{VM} }, MIPS_{VM} \right) $$
+
+随着 VM 的增加，每个 VM 获得的实际 MIPS 比所请求的 MIPS 少；而分配的 VM 较少时，单个 VM 最多的资源也只能是规定的资源量。然而这么定义在公平调度的意义上是合理的。但 VM 在实际的调度环境中，是可以进入休眠状态而基本不消耗资源，分配给该 VM 的资源可以被另一个资源所独占（优先级调度）。另外一点是调度器也没有考虑优先级的问题。
+
+在 CloudSim 中似乎预留了一个特别的方法，VM 的实际调度 MIPS 可以由一个接口指定，也就是说，可以通过 CloudletScheduler 额外分配 Cloudlet 从而导致 VM 对资源需求的越界。这个可能是为了非公平抢占式调度器设计的。实际上，对于细粒度的调度问题，影响调度算法运行的特殊情况还有不少。
+
+对于迁移过程，CloudSim Power 对 MIPS 的分配上也有特别的处理。对于迁移中的主机，对资源消耗是其原来的 10% ，实验验证（也出自其团队）来自：
+
+> Voorsluys W, Broberg J, Venugopal S, Buyya R. [Cost of virtual machine live migration in clouds: A performance evaluation](http://www.cloudbus.org/reports/VM-Migration-Cloud2009.pdf). Proceedings of the 1st International Conference on Cloud Computing (CloudCom 2009), Springer, Beijing, China, 2009.
+
+即对于迁移过程所需的时间 $T\_{m\_j}$ 而言，迁移导致的消耗是：
+
+$$ U\_{d\_j} = 0.1 \cdot \int\_{t\_0}^{t\_0+T\_{m\_j}} u\_j(t) dt $$
+
+迁移消耗方面的调研较少，但实际上迁移的情况根据不同的主机来说，应该有很不一样的表现。一般的迁移都是通过 pre-copy （预拷贝）进行，逐步等到 VM 稳定以后才进行迁移，或者迭代到一定周期强制迁移。因此，这里应该有一个隐藏表达预拷贝过程的消耗。
