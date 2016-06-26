@@ -1,21 +1,21 @@
 // https://github.com/chriskempson/tomorrow-theme
-highlight-background = #2d2d2d
-highlight-current-line = #393939
-highlight-selection = #515151
-highlight-foreground = #cccccc
-highlight-comment = #999999
-highlight-red = #f2777a
-highlight-orange = #f99157
-highlight-yellow = #ffcc66
-highlight-green = #99cc99
-highlight-aqua = #66cccc
-highlight-blue = #6699cc
-highlight-purple = #cc99cc
+highlight-background = #ffffff
+highlight-current-line = #efefef
+highlight-selection = #d6d6d6
+highlight-foreground = #4d4d4c
+highlight-comment = #8e908c
+highlight-red = #c82829
+highlight-orange = #f5871f
+highlight-yellow = #eab700
+highlight-green = #718c00
+highlight-aqua = #3e999f
+highlight-blue = #4271ae
+highlight-purple = #8959a8
 
 $code-block
   background: highlight-background
-  margin: 0 article-padding * -1
-  padding: 15px article-padding
+  margin: 0
+  padding: 15px 0
   border-style: solid
   border-color: color-border
   border-width: 1px 0
@@ -24,14 +24,15 @@ $code-block
   line-height: font-size * line-height
 
 $line-numbers
-  color: #666
+  color: highlight-comment
   font-size: 0.85em
 
-.article-entry
+.post-body
   pre, code
     font-family: font-mono
   code
     background: color-background
+    border-radius: 0.2em
     text-shadow: 0 1px #fff
     padding: 0 0.3em
   pre
@@ -69,12 +70,12 @@ $line-numbers
     .line.marked
       background: highlight-selection
   .gist
-    margin: 0 article-padding * -1
+    margin: 0
     border-style: solid
     border-color: color-border
     border-width: 1px 0
     background: highlight-background
-    padding: 15px article-padding 15px 0
+    padding: 15px 0 15px 0
     .gist-file
       border: none
       font-family: font-mono
