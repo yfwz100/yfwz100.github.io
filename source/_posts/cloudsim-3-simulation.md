@@ -1,7 +1,7 @@
 ---
 title: CloudSim 笔记（3）- 仿真过程
 tags:
-  - CloudSim
+  - 云计算
   - 服务评估
 date: 2016-07-01 00:21:57
 ---
