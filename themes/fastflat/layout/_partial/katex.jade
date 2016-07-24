@@ -1,0 +1,12 @@
+link(rel='stylesheet', href='//cdn.bootcss.com/KaTeX/0.6.0/katex.min.css')
+script(src='//cdn.bootcss.com/KaTeX/0.6.0/katex.min.js')
+script(src='//cdn.bootcss.com/KaTeX/0.6.0/contrib/auto-render.min.js')
+script.
+  window.addEventListener('load', function () {
+    renderMathInElement(document.body, {
+      delimiters: [
+        {left: '$$', right: '$$', display: true},
+        {left: '$', right: '$', display: false}
+      ]
+    });
+  });

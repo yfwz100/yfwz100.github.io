@@ -11,7 +11,7 @@ html
       link(rel="stylesheet", href="//cdn.bootcss.com/font-awesome/4.6.3/css/font-awesome.min.css")
       != css('css/base')
 
-      include ./mathjax
+      include ./katex
       include ./ta-qq
 
   body
@@ -34,17 +34,17 @@ html
               li
                 a(href=url, class="fa fa-#{name}")
                   i.sr-only= name
-  
+
     block header
       +header('/')
-             
+
     block container
       .wrap
-      
+
     footer
       .page
         address.author &copy; yfwz100
-        .hexo-powered 
-          | 博客由 
+        .hexo-powered
+          | 博客由
           a(href="http://www.hexo.io") Hexo
           |  驱动
