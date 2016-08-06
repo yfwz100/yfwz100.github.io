@@ -17,15 +17,15 @@ a
 
     &:hover
       color #0e88f1
-  
+
 body
   background-color #efefef
   font-family 'PingFang SC', '微软雅黑', 'Droid Sans', sans
-  
+
 .page
   margin auto
   max-width 800px
-  
+
 .page
   .page-heading
     text-align center
@@ -44,27 +44,27 @@ header
   padding-top 0.8em
   position relative
   box-shadow inset 0 -3px 15px #05f
-  
+
   nav.page
     padding 0
-    
+
     &:after
       content ' '
       display block
       clear both
-    
+
     ul
       padding 0
       margin 0
-      
+
       &.brand
         float left
         font-weight 800
-      
+
       &.blog
         float left
         color white
-        
+
         &:before
           content '{'
           display inline-block
@@ -84,7 +84,7 @@ header
           &:hover
             a:after
               border-bottom-width 0.3em
-          
+
           a
             &:after
               content ' '
@@ -108,21 +108,21 @@ header
 
               &:after
                 border-bottom-width 0.5em
-        
+
       &.social
         float: right
-      
+
       li // all lis
         display inline-block
         position relative
         padding 0.5em
         line-height 2
-        
+
         a
           text-decoration none
           color white
           transition 1s
-            
+
           &:hover
             color yellow
 
@@ -130,18 +130,30 @@ footer
   min-height 3em
   padding 1em
   color #acacac
-    
+
+  .page
+    position relative
+
   address.author
     font-style normal
     position relative
     display inline-block
     padding-top 0.5em
-  
+
   a
     color #aaa
-    
+
     &:hover
       color #888
+
+  .rss
+    position absolute
+    right 0
+    bottom 0
+
+    a
+      text-decoration none
+      font-size 2em
 
 @import "./_vars"
 
@@ -149,5 +161,5 @@ footer
 @import "./_part/archives"
 @import "./_part/tags"
 @import "./_part/post"
-    
+
 @import "./_part/highlight"
