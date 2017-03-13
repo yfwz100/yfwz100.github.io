@@ -1,7 +1,7 @@
 title: 2016 微软实习生笔试
 date: 2016-04-07 23:10
 categories: 找工作
-tags: 
+tags:
 - 笔试
 - OJ
 ---
@@ -20,11 +20,11 @@ tags:
 
 第一题是一个最佳字体的问题，可以想象是 Word 等文本处理、阅读器用于适配屏幕时候采用的最佳匹配算法。我把这个题目处理为一个优化问题：设定优化目标、选定初始值、误差最小化迭代。目标函数如下：
 
-$$ \\sum\_{i=0}^N \\left \\lceil a\_i / \\left \\lfloor \\frac{S}{W} \\right \\rfloor \\right \\rceil \\leq \\left \\lfloor \\frac{H}{S} \\right \\rfloor \\cdot P$$
+$$ \sum_{i=0}^N \left \lceil a_i / \left \lfloor \frac{S}{W} \right \rfloor \right \rceil \leq \left \lfloor \frac{H}{S} \right \rfloor \cdot P$$
 
 初值的选取根据：
 
-$$ S\_{max} =  \\min \\left (W, H, \\left \\lceil \\frac{P \\cdot H}{N}  \\right \\rceil \\right )$$
+$$ S_{max} =  \min \left (W, H, \left \lceil \frac{P \cdot H}{N}  \right \rceil \right )$$
 
 这个是 S 的最大值了。由于 S 是一个整数，不断递减达到目标函数即可。
 
@@ -42,10 +42,10 @@ $$ S\_{max} =  \\min \\left (W, H, \\left \\lceil \\frac{P \\cdot H}{N}  \\right
 > Update: 被提示了一下 DP，就想到递推方程了，我感觉只要涉及方格、最小等字样的题目，可以直接联想递推方程。从结果倒推，要达到这个方格，只有两种可能，从上方往下，或者从左方往右。于是，这个方程可以设定为：
 >
 > $$
-f(x,y,k) = \\begin{cases}
- \\min ( f(x-1,y,k), f(x,y-1, \\texttt{down}) + c(x, y+1) ) + b(x, y), k=\\texttt{right} \\\\
- \\min ( f(x,y-1,k), f(x-1,y, \\texttt{right}) + c(x+1, y) ) + b(x, y), k=\\texttt{down}
-\\end{cases}
+f(x,y,k) = \begin{cases}
+ \min ( f(x-1,y,k), f(x,y-1, \texttt{down}) + c(x, y+1) ) + b(x, y), k=\texttt{right} \\
+ \min ( f(x,y-1,k), f(x-1,y, \texttt{right}) + c(x+1, y) ) + b(x, y), k=\texttt{down}
+\end{cases}
 $$
 >
 > 其中 $c(x,y)$ 表示此处是否需要增加一个 block 才能通行；而 $b(x, y)$ 表示此处是否已经有一个 block 。
