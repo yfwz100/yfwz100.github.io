@@ -19,10 +19,12 @@ $$ \\min\_{q^\*, p^\*}\\sum\_{(u,i) \\in K} (r\_{ui}-q\_i^T p\_u)^2 + \\lambda (
 
 随机梯度下降法是一种比较简单的解法，具体做法是：
 
-1. 从集合 $K$ 中随机选择某一对 $(u, i)$ ，计算相对误差 $e_ui=r_ui−q_i^T p_u$
+1. 从集合 $K$ 中随机选择某一对 $(u, i)$ ，计算相对误差 $ e\_{ui} = r\_{ui} - q_i^T p_u $
 2. 更新两个矩阵：
-    * $ q_i \\leftarrow q_i + \\gamma \\cdot (e_ui \\cdot p_u − \\lambda \\cdot q_i ) $
-    * $ p_u \\leftarrow p_u + \\gamma \\cdot (e_ui \\cdot p_u − \\lambda \\cdot p_u ) $
+
+   $$ q_i \\leftarrow q_i + \\gamma \\cdot (e_ui \\cdot p_u - \\lambda \\cdot q_i ) $$
+
+   $$ p_u \\leftarrow p_u + \\gamma \\cdot (e_ui \\cdot p_u - \\lambda \\cdot p_u ) $$
 
 3. 重复以上过程，最终使得大部分（给出的阈值）的 $e_{ui}=0$ 则结束算法。
 
