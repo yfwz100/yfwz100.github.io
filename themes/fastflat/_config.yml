@@ -2,6 +2,7 @@
 menu:
   archives: /archives
   tags: /tags
+  resume: /resume-cv
 rss: /atom.xml
 
 category_dir: categories
