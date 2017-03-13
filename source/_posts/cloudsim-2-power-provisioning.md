@@ -86,8 +86,10 @@ CloudSim 的能耗模块是在 3.0 版本完善的。最早的工作可能在 20
 
 对能耗的仿真模型定义在 `PowerModel`，这个借口只提供一个抽象方法，就是 `getPower(double):double` 从给定的资源利用率里推导出能耗。估计 CloudSim 的想法是对每个资源都建立一个利用率到能耗的映射，然后能耗是所有资源的累积和：
 
-$$ P = \sum_{u\in U} P_u(u) $$
 
+$$
+P = \sum_{u\in U} P_u(u)
+$$
 其中的 $P_u(u)$ 即建立的利用率到能耗的映射。对于 CloudSim Power 部分的论文和具体实现来说，只考虑了粗粒度下 CPU 的能耗代表整机能耗，具体的依据来源于
 
 > Kusic D, Kephart JO, Hanson JE, Kandasamy N, Jiang G. Power and performance management of virtualized computing environments via lookahead control. Cluster Computing 2009; 12(1):1–15.
@@ -98,8 +100,9 @@ $$ P = \sum_{u\in U} P_u(u) $$
 
 形式化描述为：
 
-$$ P_{CPU}(u) = \alpha (2u - u^r) + \sigma $$
-
+$$
+P_{CPU}(u) = \alpha (2u - u^r) + \sigma
+$$
 思路都是用 CPU 能耗直接替代整机能耗。这个一方面确实是 CPU 在能耗方面占了主导，另一方面，则是由于分析的便捷性。
 
 当然，对能耗模型的调研，觉得这篇文章的说法比较靠谱：
@@ -114,18 +117,8 @@ CPU 大约占了 60% 的能耗，其余的能耗大户包括 RAM 和磁盘。但
 
 在后来修改版里，CloudSim 3.0 引入了 `VmSchedulerTimeSharedOverSubscription` 类对满载的虚拟机进行调度。但采用的是简单的分时调度，采用 MIPS （每秒指令数）来量度：
 
-$$ MIPS\_{VM} = \min \left( \frac{MIPS\_{PM} }{n\_{VM} }, MIPS_{VM} \right) $$
+$$
+MIPS\_{VM} = \min \left( \frac{MIPS\_{PM} }{n\_{VM} }, MIPS_{VM} \right)
+$$
 
 随着 VM 的增加，每个 VM 获得的实际 MIPS 比所请求的 MIPS 少；而分配的 VM 较少时，单个 VM 最多的资源也只能是规定的资源量。然而这么定义在公平调度的意义上是合理的。但 VM 在实际的调度环境中，是可以进入休眠状态而基本不消耗资源，分配给该 VM 的资源可以被另一个资源所独占（优先级调度）。另外一点是调度器也没有考虑优先级的问题。
-
-在 CloudSim 中似乎预留了一个特别的方法，VM 的实际调度 MIPS 可以由一个接口指定，也就是说，可以通过 CloudletScheduler 额外分配 Cloudlet 从而导致 VM 对资源需求的越界。这个可能是为了非公平抢占式调度器设计的。实际上，对于细粒度的调度问题，影响调度算法运行的特殊情况还有不少。
-
-对于迁移过程，CloudSim Power 对 MIPS 的分配上也有特别的处理。对于迁移中的主机，对资源消耗是其原来的 10% ，实验验证（也出自其团队）来自：
-
-> Voorsluys W, Broberg J, Venugopal S, Buyya R. [Cost of virtual machine live migration in clouds: A performance evaluation](http://www.cloudbus.org/reports/VM-Migration-Cloud2009.pdf). Proceedings of the 1st International Conference on Cloud Computing (CloudCom 2009), Springer, Beijing, China, 2009.
-
-即对于迁移过程所需的时间 $T\_{m\_j}$ 而言，迁移导致的消耗是：
-
-$$ U\_{d\_j} = 0.1 \cdot \int\_{t\_0}^{t\_0+T\_{m\_j}} u\_j(t) dt $$
-
-迁移消耗方面的调研较少，但实际上迁移的情况根据不同的主机来说，应该有很不一样的表现。一般的迁移都是通过 pre-copy （预拷贝）进行，逐步等到 VM 稳定以后才进行迁移，或者迭代到一定周期强制迁移。因此，这里应该有一个隐藏表达预拷贝过程的消耗。
