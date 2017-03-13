@@ -4,7 +4,7 @@
 
 # Site
 title: 植的博客
-subtitle: 游戏|机器学习|数据挖掘|前端
+subtitle: 机器学习|数据挖掘
 description: 技术改变世界，数据改变生活
 author: Zhi
 language: zh-CN
@@ -73,10 +73,13 @@ pagination_dir: page
 ## Themes: https://hexo.io/themes/
 theme: fastflat
 
+# plugins:
+#   - hexo-renderer-jade
+
 # Deployment
 ## Docs: https://hexo.io/docs/deployment.html
 deploy:
 - type: git
   repo: git@github.com:yfwz100/yfwz100.github.io.git
-#- type: git
-#  repo: git@git.oschina.net:zhi/zhi.git
+# - type: git
+#   repo: git@git.oschina.net:zhi/zhi.git
