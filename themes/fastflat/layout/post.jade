@@ -14,7 +14,7 @@ block container
         span.author
           a(href="mailto: yfwz100@yeah.net")= page.author || config.author
         | #{__('write_at')}
-        span.date= page.date.format(config.date_format)
+        span.date= page.date.format('Y年M月D日')
         |  ·
         span.tags
           each tag in page.tags.data

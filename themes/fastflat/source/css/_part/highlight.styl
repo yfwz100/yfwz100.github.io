@@ -1,5 +1,5 @@
-// https://github.com/chriskempson/tomorrow-theme
-highlight-background = #ffffff
+// https//github.com/chriskempson/tomorrow-theme
+highlight-background = #fafafa
 highlight-current-line = #efefef
 highlight-selection = #d6d6d6
 highlight-foreground = #4d4d4c
@@ -13,105 +13,109 @@ highlight-blue = #4271ae
 highlight-purple = #8959a8
 
 $code-block
-  background: highlight-background
-  margin: 0
-  padding: 15px 0
-  border-style: solid
-  border-color: color-border
-  border-width: 1px 0
-  overflow: auto
-  color: highlight-foreground
-  line-height: font-size * line-height
+  background highlight-background
+  margin 0
+  padding 0
+  border-style solid
+  border-color color-border
+  border-width 1px 0
+  overflow auto
+  color highlight-foreground
+  line-height font-size * line-height
 
 $line-numbers
-  color: highlight-comment
-  font-size: 0.85em
+  color highlight-comment
+  font-size 0.85em
 
 .post-body
   pre, code
-    font-family: font-mono
+    font-family font-mono
   code
-    background: color-background
-    border-radius: 0.2em
-    text-shadow: 0 1px #fff
-    padding: 0 0.3em
+    background color-background
+    border-radius 0.2em
+    text-shadow 0 1px #fff
+    padding 0 0.3em
   pre
     @extend $code-block
     code
-      background: none
-      text-shadow: none
-      padding: 0
+      background none
+      text-shadow none
+      padding 0
   .highlight
     @extend $code-block
+    .code
+      border-width 0 !important
+    .gutter
+      border-width 0 !important
     pre
-      border: none
-      margin: 0
-      padding: 0
+      border none
+      margin 0
+      padding 0
     table
-      margin: 0
-      width: auto
+      margin 0 !important
+      width auto
     td
-      border: none
-      padding: 0
+      border none
+      padding 0
     figcaption
       clearfix()
-      font-size: 0.85em
-      color: highlight-comment
-      line-height: 1em
-      margin-bottom: 1em
+      font-size 0.85em
+      color highlight-comment
+      line-height 1em
+      margin-bottom 1em
       a
-        float: right
+        float right
     .gutter pre
       @extend $line-numbers
-      text-align: right
-      padding-right: 20px
+      text-align right
+      padding-right 20px
     .line
-      height: font-size * line-height
+      height font-size * line-height
     .line.marked
-      background: highlight-selection
+      background highlight-selection
   .gist
-    margin: 0
-    border-style: solid
-    border-color: color-border
-    border-width: 1px 0
-    background: highlight-background
-    padding: 15px 0 15px 0
+    margin 0
+    border-style solid
+    border-color color-border
+    border-width 1px 0
+    background highlight-background
+    padding 15px 0 15px 0
     .gist-file
-      border: none
-      font-family: font-mono
-      margin: 0
+      border none
+      font-family font-mono
+      margin 0
       .gist-data
-        background: none
-        border: none
+        background none
+        border none
         .line-numbers
           @extend $line-numbers
-          background: none
-          border: none
-          padding: 0 20px 0 0
+          background none
+          border none
+          padding 0 20px 0 0
         .line-data
-          padding: 0 !important
+          padding 0 !important
       .highlight
-        margin: 0
-        padding: 0
-        border: none
+        margin 0
+        padding 0
+        border none
       .gist-meta
-        background: highlight-background
-        color: highlight-comment
-        font: 0.85em font-sans
-        text-shadow: 0 0
-        padding: 0
-        margin-top: 1em
-        margin-left: article-padding
+        background highlight-background
+        color highlight-comment
+        font 0.85em font-sans
+        text-shadow 0 0
+        padding 0
+        margin-top 1em
+        margin-left article-padding
         a
-          color: color-link
-          font-weight: normal
-          &:hover
-            text-decoration: underline
+          color color-link
+          font-weight normal
+          &hover
+            text-decoration underline
 
 pre
   .comment
   .title
-    color: highlight-comment
+    color highlight-comment
   .variable
   .attribute
   .tag
@@ -124,27 +128,27 @@ pre
   .css .id
   .css .class
   .css .pseudo
-    color: highlight-red
+    color highlight-red
   .number
   .preprocessor
   .built_in
   .literal
   .params
   .constant
-    color: highlight-orange
+    color highlight-orange
   .class
   .ruby .class .title
   .css .rules .attribute
-    color: highlight-green
+    color highlight-green
   .string
   .value
   .inheritance
   .header
   .ruby .symbol
   .xml .cdata
-    color: highlight-green
+    color highlight-green
   .css .hexcolor
-    color: highlight-aqua
+    color highlight-aqua
   .function
   .python .decorator
   .python .title
@@ -153,7 +157,7 @@ pre
   .perl .sub
   .javascript .title
   .coffeescript .title
-    color: highlight-blue
+    color highlight-blue
   .keyword
   .javascript .function
-    color: highlight-purple
+    color highlight-purple

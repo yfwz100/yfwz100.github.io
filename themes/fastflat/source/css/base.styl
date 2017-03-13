@@ -39,11 +39,11 @@ body
   box-shadow 0 5px 10px #ccc
 
 header
-  background-color #0e7cf1
+  background-color #eee
   font-size 1.1em
   padding-top 0.8em
   position relative
-  box-shadow inset 0 -3px 15px #05f
+  box-shadow inset 0 -3px 15px #cfcfcf
 
   nav.page
     padding 0
@@ -59,11 +59,10 @@ header
 
       &.brand
         float left
-        font-weight 800
 
       &.blog
         float left
-        color white
+        color #aaa
 
         &:before
           content '{'
@@ -100,17 +99,23 @@ header
               transition-duration 0.2s
 
             &.on
-              color #f9f9c9
+              color #0e7cf1
               font-weight 600
 
               &:hover
-                color #f9f9c9
+                color #87ceeb
 
               &:after
                 border-bottom-width 0.5em
 
       &.social
         float: right
+
+        li a
+          color #acacac
+
+          &:hover
+            color #888
 
       li // all lis
         display inline-block
@@ -120,11 +125,11 @@ header
 
         a
           text-decoration none
-          color white
+          color #0e7cf1
           transition 1s
 
           &:hover
-            color yellow
+            color #87ceeb
 
 footer
   min-height 3em
@@ -161,5 +166,6 @@ footer
 @import "./_part/archives"
 @import "./_part/tags"
 @import "./_part/post"
+@import "./_part/resume"
 
 @import "./_part/highlight"
