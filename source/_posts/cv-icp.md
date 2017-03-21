@@ -19,7 +19,7 @@ $$ d(\vec{p}, X)=\min_{\vec{x} \in X}\left \| \vec{x} - \vec{p} \right \| $$
 
 那么点的对应点定义为
 
-$$ d(\vec{p}, X)=\arg \min\_{\vec{x} \in X}\left \| \vec{x} - \vec{p} \right \| $$
+$$ d(\vec{p}, X)=\arg \min_{\vec{x} \in X}\left \| \vec{x} - \vec{p} \right \| $$
 
 定义过程为求所有的在点集上的对应点的集合（通过上式给出）。
 定义旋转过程（由下文给出）为：
