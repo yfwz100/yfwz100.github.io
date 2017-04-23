@@ -81,5 +81,5 @@ theme: fastflat
 deploy:
 - type: git
   repo: git@github.com:yfwz100/yfwz100.github.io.git
-# - type: git
-#   repo: git@git.oschina.net:zhi/zhi.git
+- type: git
+  repo: git@git.oschina.net:zhi/zhi.git
