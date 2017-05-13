@@ -17,23 +17,23 @@ html
   body
     mixin header(active)
       header
-        nav.page
-          ul.brand
-            li
-              a(href='/', class=active=='/'?'on':null)= config.title
-
-          ul.blog
-
-            // List other items on menu.
-            each url, name in theme.menu
-              li.menu-item
-                a(href=url, class=active==url?'on':null)= __(name)
-
-          ul.social
-            each url, name in config.social
+        .page
+          nav
+            ul.brand
               li
-                a(href=url, class="fa fa-#{name}")
-                  i.sr-only= name
+                a(href='/', class=active=='/'?'on':null)= config.title
+
+            ul.blog
+              // List other items on menu.
+              each url, name in theme.menu
+                li.menu-item
+                  a(href=url, class=active==url?'on':null)= __(name)
+
+            ul.social
+              each url, name in config.social
+                li
+                  a(href=url, class="fa fa-#{name}")
+                    i.sr-only= name
 
     block header
       +header('/')

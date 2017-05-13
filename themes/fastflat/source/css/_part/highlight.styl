@@ -30,33 +30,46 @@ $line-numbers
 .post-body
   pre, code
     font-family font-mono
+
   code
     background color-background
     border-radius 0.2em
     text-shadow 0 1px #fff
     padding 0 0.3em
+
   pre
     @extend $code-block
+
     code
       background none
       text-shadow none
       padding 0
+  
   .highlight
     @extend $code-block
+    
     .code
       border-width 0 !important
+    
     .gutter
       border-width 0 !important
+    
     pre
       border none
       margin 0
       padding 0
+
     table
       margin 0 !important
-      width auto
-    td
-      border none
-      padding 0
+      width auto !important
+
+      tr
+        border-top none !important
+
+      td
+        border none
+        padding 0
+    
     figcaption
       clearfix()
       font-size 0.85em
@@ -65,14 +78,18 @@ $line-numbers
       margin-bottom 1em
       a
         float right
+    
     .gutter pre
       @extend $line-numbers
       text-align right
       padding-right 20px
+    
     .line
       height font-size * line-height
+    
     .line.marked
       background highlight-selection
+  
   .gist
     margin 0
     border-style solid
@@ -80,24 +97,30 @@ $line-numbers
     border-width 1px 0
     background highlight-background
     padding 15px 0 15px 0
+    
     .gist-file
       border none
       font-family font-mono
       margin 0
+      
       .gist-data
         background none
         border none
+        
         .line-numbers
           @extend $line-numbers
           background none
           border none
           padding 0 20px 0 0
+        
         .line-data
           padding 0 !important
+      
       .highlight
         margin 0
         padding 0
         border none
+      
       .gist-meta
         background highlight-background
         color highlight-comment
@@ -106,9 +129,11 @@ $line-numbers
         padding 0
         margin-top 1em
         margin-left article-padding
+        
         a
           color color-link
           font-weight normal
+          
           &hover
             text-decoration underline
 
@@ -136,10 +161,12 @@ pre
   .params
   .constant
     color highlight-orange
+
   .class
   .ruby .class .title
   .css .rules .attribute
     color highlight-green
+
   .string
   .value
   .inheritance
@@ -147,17 +174,20 @@ pre
   .ruby .symbol
   .xml .cdata
     color highlight-green
+
   .css .hexcolor
     color highlight-aqua
+
   .function
   .python .decorator
   .python .title
   .ruby .function .title
   .ruby .title .keyword
-  .perl .sub
+  .perl .sub,
   .javascript .title
   .coffeescript .title
     color highlight-blue
+
   .keyword
   .javascript .function
     color highlight-purple

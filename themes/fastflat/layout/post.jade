@@ -9,6 +9,8 @@ block container
       .post-heading
         h1= page.title
 
+      .post-body!= page.content
+
       .post-meta
         | #{__('from_author')}
         span.author
@@ -20,6 +22,4 @@ block container
           each tag in page.tags.data
             a.tag(href="/" + tag.path)= tag.name
 
-      .post-body!= page.content
-
-      include _partial/duoshuo
+      include _partial/gentie

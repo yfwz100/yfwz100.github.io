@@ -7,20 +7,19 @@ html, body
 
 a
   color #0e7cf1
-  transition 0.5s
+  transition 0.1s
 
   &:hover
     color blue
-
-  &:visited
-    color skyblue
+    text-shadow: 0 0 0.5em #fff
 
     &:hover
       color #0e88f1
 
 body
   background-color #efefef
-  font-family 'PingFang SC', '微软雅黑', 'Droid Sans', sans
+  font 300 1em PingFang SC,Lantinghei SC,Microsoft Yahei,Hiragino Sans GB,Microsoft Sans Serif,WenQuanYi Micro Hei,sans
+  text-rendering optimizelegibility
 
 .page
   margin auto
@@ -36,17 +35,26 @@ body
   background-color white
   padding 1em 0
   min-height 3em
-  box-shadow 0 5px 10px #ccc
 
 header
   background-color #eee
   font-size 1.1em
   padding-top 0.8em
   position relative
-  box-shadow inset 0 -3px 15px #cfcfcf
+  border-bottom: 1px solid #ccc
+  z-index 100
+  height: 4em
 
-  nav.page
+  .page
+    position: relative
+    width: 100%
+    height: 100%
+
+  nav
+    position absolute
+    bottom: -1px
     padding 0
+    width: 100%
 
     &:after
       content ' '
@@ -100,7 +108,7 @@ header
 
             &.on
               color #0e7cf1
-              font-weight 600
+              font-weight bolder
 
               &:hover
                 color #87ceeb
@@ -117,6 +125,15 @@ header
           &:hover
             color #888
 
+          &.fa-git:hover
+            color green
+          
+          &.fa-github:hover
+            color #222
+
+          &.fa-weibo:hover
+            color red
+
       li // all lis
         display inline-block
         position relative
@@ -132,12 +149,16 @@ header
             color #87ceeb
 
 footer
-  min-height 3em
-  padding 1em
+  position relative
+  background-color #eee
   color #acacac
+  border-top: 1px solid #ccc
+  z-index: 100
+  height: 5em
 
   .page
-    position relative
+    position: relative
+    padding-top: 0.5em
 
   address.author
     font-style normal
@@ -158,7 +179,7 @@ footer
 
     a
       text-decoration none
-      font-size 2em
+      font-size 2.5em
 
 @import "./_vars"
 
