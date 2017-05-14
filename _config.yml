@@ -7,6 +7,8 @@ title: 植的博客
 subtitle: 机器学习|数据挖掘
 description: 技术改变世界，数据改变生活
 author: Zhi
+authorName: Wang Zhi
+authorDescription: 一个平凡的奋斗者。
 language: zh-CN
 timezone: Asia/Shanghai
 
@@ -60,7 +62,7 @@ tag_map:
 ## Hexo uses Moment.js to parse and display date
 ## You can customize the date format as defined in
 ## http://momentjs.com/docs/#/displaying/format/
-date_format: YYYY-MM-DD
+date_format: YYYY/MM/DD
 time_format: HH:mm:ss
 
 # Pagination
