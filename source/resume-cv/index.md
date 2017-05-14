@@ -9,7 +9,7 @@ date: 2016-10-12 19:45:16
 
 # 个人资料
 
-<table><tr><th>邮箱：</th><td>yfwz100 # yeah.net</td><th>豆瓣：</th><td>http://www.douban.com/people/yfwz100</td></tr><tr><th>微博：</th><td>[@yfwz100](http://weibo.com/yfwz100)</td><th>博客：</th><td>http://blog.yfwz100.cn</td></tr><tr><th>Github：</th><td>https://github.com/yfwz100</td></tr></table>
+<table><tr><th>邮箱：</th><td>yfwz100 # yeah.net</td><th>豆瓣：</th><td>http://www.douban.com/people/yfwz100</td></tr><tr><th>微博：</th><td>@yfwz100</td><th>博客：</th><td>http://blog.yfwz100.cn</td></tr><tr><th>Github：</th><td>https://github.com/yfwz100</td></tr></table>
 
 # 个人经历
 
@@ -38,7 +38,7 @@ date: 2016-10-12 19:45:16
 本科期间（2010 ~ 2014）：
 
 1. 业余做的 [LineMaze 线段迷宫游戏](https://github.com/yfwz100/line-maze)
-2. 智能玩具项目 R-Tank，并[获得 2012 年成都国际软件开发大赛](http://sc.sina.com.cn/city/xwgz/gdxw/2012-12-03/13414034.html)
+2. 智能玩具项目 R-Tank，并[获得 2012 年成都国际软件开发大赛团队一等奖](http://sc.sina.com.cn/city/xwgz/gdxw/2012-12-03/13414034.html)
 3. 为“东大在线”社团做的内容网站 [Neuola](https://github.com/NeuOL/neuola-legacy)
 3. 其他……（年代久远，如是说我也忘了）
 
@@ -51,9 +51,3 @@ date: 2016-10-12 19:45:16
 
 - [list of projects on GitHub](https://github.com/yfwz100)
 - [“码云”上的项目列表](http://git.oschina.net/zhi)
-
-# 个人爱好
-
-逛知乎、Github 等社区，业余前端开发者，给开源项目找找 bug 并修复。
-
-喜欢优雅的设计，包括并不限于优雅的数学模型、编程语言实现等。
