@@ -77,6 +77,26 @@ theme: fastflat
 
 # plugins:
 #   - hexo-renderer-jade
+markdown:
+  render:
+    html: true
+    breaks: true
+    linkify: true
+    typographer: true
+  plugins:
+    - markdown-it-abbr
+    - markdown-it-footnote
+    - markdown-it-ins
+    - markdown-it-sub
+    - markdown-it-sup
+    - name: markdown-it-mathjax
+      args: []
+  anchors:
+    level: 2
+    collisionSuffix: 'v'
+    permalink: true
+    permalinkClass: header-anchor
+    permalinkSymbol: '# '
 
 # Deployment
 ## Docs: https://hexo.io/docs/deployment.html

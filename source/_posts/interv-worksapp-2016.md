@@ -18,15 +18,15 @@ tags:
 
 既然是动态规划，那么我们就考虑一下状态方程吧…… 设当前坐标为 $(x, y)$ 、方向为 $d$。那么递推方程就是：
 
-$$ F(x,y,d)= \\begin{cases}
-M_{(x,y)}+\\max\\{ F(i+1,j,0), F(i, j-1,1), F(i,j+1,2) \\},  & d=0 \\\\
-M_{(x,y)}+\\max\\{ F(i+1,j,0), F(i,j-1,1) \\}, & d=1 \\\\
-M_{(x,y)}\\max\\{ F(i+1,j,0), F(i,j+1,2) \\},  & d=2
-\\end{cases} $$
+$$ F(x,y,d)= \begin{cases}
+M_{(x,y)}+\max\{ F(i+1,j,0), F(i, j-1,1), F(i,j+1,2) \},  & d=0 \\
+M_{(x,y)}+\max\{ F(i+1,j,0), F(i,j-1,1) \}, & d=1 \\
+M_{(x,y)}\max\{ F(i+1,j,0), F(i,j+1,2) \},  & d=2
+\end{cases} $$
 
 并且，
 
-$$ d = \\begin{cases} 0, \\text{from right} \\\\ 1, \\text{from up} \\\\ 2, \\text{from down} \\end{cases} $$
+$$ d = \begin{cases} 0, \text{from right} \\ 1, \text{from up} \\ 2, \text{from down} \end{cases} $$
 
 好像有什么不对——还没有考虑边界的情况（穿越），如果考虑穿越，而且不能走重复的路，那么情况就复杂很多了。
 

@@ -10,21 +10,21 @@ tags: 数据挖掘
 
 假设大家已经了解协同过滤算法了，也知道评分矩阵是怎么一回事。为了简化描述，首先给出问题描述，为了解决潜在因子分解的问题，我们最终要优化如下表达式：
 
-$$ \\min\_{q^\*, p^\*}\\sum\_{(u,i) \\in K} (r\_{ui}-q\_i^T p\_u)^2 + \\lambda (|q\_i|^2+|p\_u|^2) $$
+$$ \min_{q^*, p^*}\sum_{(u,i) \in K} (r_{ui}-q_i^T p_u)^2 + \lambda (|q_i|^2+|p_u|^2) $$
 
-其中集合 $K$ 表示显式给出的提示的 $(u,i)$ 组合，而 $\\lambda$ 表示正则化参数。
-按惯例，所有小写字母只代表一个数值或向量，这里的 $q\_i$  和 $p\_u$  是等维度的向量，其余是数值。
+其中集合 $K$ 表示显式给出的提示的 $(u,i)$ 组合，而 $\lambda$ 表示正则化参数。
+按惯例，所有小写字母只代表一个数值或向量，这里的 $q_i$ 和 $p_u$  是等维度的向量，其余是数值。
 
 ## 随机梯度下降法（SDG）
 
 随机梯度下降法是一种比较简单的解法，具体做法是：
 
-1. 从集合 $K$ 中随机选择某一对 $(u, i)$ ，计算相对误差 $ e\_{ui} = r\_{ui} - q_i^T p_u $
+1. 从集合 $K$ 中随机选择某一对 $(u, i)$ ，计算相对误差 $ e_{ui} = r_{ui} - q_i^T p_u $
 2. 更新两个矩阵：
 
-   $$ q_i \\leftarrow q_i + \\gamma \\cdot (e_ui \\cdot p_u - \\lambda \\cdot q_i ) $$
+   $$ q_i \leftarrow q_i + \gamma \cdot (e_ui \cdot p_u - \lambda \cdot q_i ) $$
 
-   $$ p_u \\leftarrow p_u + \\gamma \\cdot (e_ui \\cdot p_u - \\lambda \\cdot p_u ) $$
+   $$ p_u \leftarrow p_u + \gamma \cdot (e_ui \cdot p_u - \lambda \cdot p_u ) $$
 
 3. 重复以上过程，最终使得大部分（给出的阈值）的 $e_{ui}=0$ 则结束算法。
 
@@ -36,7 +36,7 @@ $$ \\min\_{q^\*, p^\*}\\sum\_{(u,i) \\in K} (r\_{ui}-q\_i^T p\_u)^2 + \\lambda (
 
 这篇文章另一个有意思的部分是把外部信息引入到矩阵分解算法中。实际上就是修改了优化函数：
 
-$$ \\min\_{p^\*,q^\*,b^\*} \\sum\_{(u,i) \\in K} (r\_{ui} - \\mu - b\_u - b\_i - p\_u^T q\_i )^2 + \\lambda (|p\_u|^2+|q\_i|^2+b\_u^2+b\_i^2) $$
+$$ \min_{p^*,q^*,b^*} \sum_{(u,i) \in K} (r_{ui} - \mu - b_u - b_i - p_u^T q_i )^2 + \lambda (|p_u|^2+|q_i|^2+b_u^2+b_i^2) $$
 
 这里的技巧就是把需要的外部信息整合为矩阵，然后加入到优化算法中。
 

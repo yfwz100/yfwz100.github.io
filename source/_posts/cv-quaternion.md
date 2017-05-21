@@ -10,7 +10,7 @@ tags:
 
 在欧几里得坐标系下，二维的旋转矩阵可以用一个旋转角 $ \theta $ 来表达出来。具体地，
 
-$$ R = \begin{bmatrix} \cos \theta & -\sin \theta \\\\ \sin \theta & \cos \theta \\\\ \end{bmatrix} $$
+$$ R = \begin{bmatrix} \cos \theta & -\sin \theta \\ \sin \theta & \cos \theta \\ \end{bmatrix} $$
 
 二维点坐标表示为列向量乘以旋转矩阵，得到的列向量就是在欧几里得坐标系下的旋转后的坐标。
 
@@ -24,7 +24,7 @@ $$ R = \begin{bmatrix} \cos \theta & -\sin \theta \\\\ \sin \theta & \cos \thet
 
 欧拉旋转的想法和旋转向量相似。但是不是给定一个旋转向量，而是分别给出观测对象沿$x, y, z$ 三个坐标轴旋转（转化为了一个二维的旋转问题）。其中，沿着给定三个方向的旋转矩阵是这个样子的：
 
-$$  \nonumber \begin{alignat}{1} R_x(\theta) &= \begin{bmatrix} 1 & 0 & 0 \\\\ 0 & \cos \theta & -\sin \theta \\\\ 0 & \sin \theta & \cos \theta \end{bmatrix} , R_y(\theta) &= \begin{bmatrix} \cos \theta & 0 & \sin \theta \\\\ 0 & 1 & 0 \\\\ -\sin \theta & 0 & \cos \theta \\\\ \end{bmatrix} , R_z(\theta) &= \begin{bmatrix} \cos \theta & -\sin \theta & 0 \\\\ \sin \theta & \cos \theta & 0\\\\ 0 & 0 & 1\\\\ \end{bmatrix} \end{alignat} $$
+$$  \nonumber \begin{alignat}{1} R_x(\theta) &= \begin{bmatrix} 1 & 0 & 0 \\ 0 & \cos \theta & -\sin \theta \\ 0 & \sin \theta & \cos \theta \end{bmatrix} , R_y(\theta) &= \begin{bmatrix} \cos \theta & 0 & \sin \theta \\ 0 & 1 & 0 \\ -\sin \theta & 0 & \cos \theta \\ \end{bmatrix} , R_z(\theta) &= \begin{bmatrix} \cos \theta & -\sin \theta & 0 \\ \sin \theta & \cos \theta & 0\\ 0 & 0 & 1\\ \end{bmatrix} \end{alignat} $$
 
 然后，旋转矩阵表示为：
 
@@ -48,21 +48,21 @@ $$ p' = q p q^{-1} $$
 
 四元组表达的旋转也可以通过旋转矩阵来表示，即简化上述 $$ p' = q p q^{-1} $$ 的操作。其得到的旋转矩阵为：
 
-$$  \begin{bmatrix} c + a_x^2 (1-c) & a_x a_y (1-c) - a_z s & a_x a_z (1-c) + a_y s \\\\ a_y a_x (1-c) + a_z s & c + a_y^2 (1-c) & a_y a_z (1-c) - a_x s \\\\ a_z a_x (1-c) - a_y s & a_z a_y (1-c) + a_x s & c + a_z^2 (1-c) \end{bmatrix} $$
+$$  \begin{bmatrix} c + a_x^2 (1-c) & a_x a_y (1-c) - a_z s & a_x a_z (1-c) + a_y s \\ a_y a_x (1-c) + a_z s & c + a_y^2 (1-c) & a_y a_z (1-c) - a_x s \\ a_z a_x (1-c) - a_y s & a_z a_y (1-c) + a_x s & c + a_z^2 (1-c) \end{bmatrix} $$
 
 其中，$s=\sin \theta, c = \cos \theta$ 。对于一个旋转四元组 $q=q_r+q_i i + q_j j + q_k k$，以上变量可以通过 
 
-$$ \\begin\{align\} \\theta \& =2 \\arccos q_r=2 \\arcsin \\sqrt{ {q_i}^2+{q_j}^2+{q_k}^2} \\\\ (a_x, a_y, a_z) \& =\\frac{1}{\\sin \\frac\{1\}\{2\} \\theta} (q_i, q_j, q_k) \\end\{align\} $$
+$$ \begin{align} \theta \& =2 \arccos q_r=2 \arcsin \sqrt{ {q_i}^2+{q_j}^2+{q_k}^2} \\ (a_x, a_y, a_z) & =\frac{1}{\sin \frac{1}{2} \theta} (q_i, q_j, q_k) \end{align} $$
 
 得到。
 
 如果直接从四元组中的变量出发，也可以把矩阵表达为：
 
-$$  \begin{bmatrix} 1 - 2 q_j^2 - 2 q_k^2 & 2 (q_i q_j - q_k q_r) & 2 (q_i q_k + q_j q_r) \\\\ 2 (q_i q_j + q_k q_r) & 1 - 2 q_i^2 - 2 q_k^2 & 2 (q_j q_k - q_i q_r) \\\\ 2 (q_i q_k - q_j q_r) & 2 (q_j q_k + q_i q_r) & 1 - 2 q_i^2 - 2 q_j^2 \end{bmatrix}  $$
+$$  \begin{bmatrix} 1 - 2 q_j^2 - 2 q_k^2 & 2 (q_i q_j - q_k q_r) & 2 (q_i q_k + q_j q_r) \\ 2 (q_i q_j + q_k q_r) & 1 - 2 q_i^2 - 2 q_k^2 & 2 (q_j q_k - q_i q_r) \\ 2 (q_i q_k - q_j q_r) & 2 (q_j q_k + q_i q_r) & 1 - 2 q_i^2 - 2 q_j^2 \end{bmatrix}  $$
 
 或（已知 $q_r$，可以通过变换式代换主轴线上的量）
 
-$$  \begin{bmatrix} q_r^2 + q_i^2 -  q_j^2 -  q_k^2 & 2 (q_i q_j - q_k q_r) & 2 (q_i q_k + q_j q_r) \\\\ 2 (q_i q_j + q_k q_r) & q_r^2 + q_j^2 -  q_i^2 -  q_k^2 & 2 (q_j q_k - q_i q_r) \\\\ 2 (q_i q_k - q_j q_r) & 2 (q_j q_k + q_i q_r) & q_r^2 + q_k^2 - q_i^2 - q_j^2 \end{bmatrix}  $$
+$$  \begin{bmatrix} q_r^2 + q_i^2 -  q_j^2 -  q_k^2 & 2 (q_i q_j - q_k q_r) & 2 (q_i q_k + q_j q_r) \\ 2 (q_i q_j + q_k q_r) & q_r^2 + q_j^2 -  q_i^2 -  q_k^2 & 2 (q_j q_k - q_i q_r) \\ 2 (q_i q_k - q_j q_r) & 2 (q_j q_k + q_i q_r) & q_r^2 + q_k^2 - q_i^2 - q_j^2 \end{bmatrix}  $$
 
 上述两个矩阵是等价的。
 
@@ -72,6 +72,6 @@ $$  \begin{bmatrix} q_r^2 + q_i^2 -  q_j^2 -  q_k^2 & 2 (q_i q_j - q_k q_r) 
 
 从旋转矩阵恢复四元组可以通过构造矩阵求特征值为 1 的 特征向量（即四元组）。设 $Q$ 是一个 $3\times 3$ 的旋转矩阵，构造矩阵：
 
-$$  K = \frac13 \begin{bmatrix} Q_{xx}-Q_{yy}-Q_{zz} & Q_{yx}+Q_{xy} & Q_{zx}+Q_{xz} & Q_{yz}-Q_{zy} \\\\ Q_{yx}+Q_{xy} & Q_{yy}-Q_{xx}-Q_{zz} & Q_{zy}+Q_{yz} & Q_{zx}-Q_{xz} \\\\ Q_{zx}+Q_{xz} & Q_{zy}+Q_{yz} & Q_{zz}-Q_{xx}-Q_{yy} & Q_{xy}-Q_{yx} \\\\ Q_{yz}-Q_{zy} & Q_{zx}-Q_{xz} & Q_{xy}-Q_{yx} & Q_{xx}+Q_{yy}+Q_{zz} \end{bmatrix}  $$
+$$  K = \frac13 \begin{bmatrix} Q_{xx}-Q_{yy}-Q_{zz} & Q_{yx}+Q_{xy} & Q_{zx}+Q_{xz} & Q_{yz}-Q_{zy} \\ Q_{yx}+Q_{xy} & Q_{yy}-Q_{xx}-Q_{zz} & Q_{zy}+Q_{yz} & Q_{zx}-Q_{xz} \\ Q_{zx}+Q_{xz} & Q_{zy}+Q_{yz} & Q_{zz}-Q_{xx}-Q_{yy} & Q_{xy}-Q_{yx} \\ Q_{yz}-Q_{zy} & Q_{zx}-Q_{xz} & Q_{xy}-Q_{yx} & Q_{xx}+Q_{yy}+Q_{zz} \end{bmatrix}  $$
 
 如果 $Q$ 是一个纯旋转矩阵，那么$ K $ 将会有一个特征值为 1 的特征向量，该向量即四元组。如果 $Q$ 不是一个纯旋转矩阵，那么我们求出最大的特征值所对应的向量为四元组，该四元组求得的旋转矩阵将接近$Q$。

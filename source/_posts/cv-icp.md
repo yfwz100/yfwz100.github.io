@@ -58,7 +58,7 @@ $$ R(\vec{q}_R)=\begin{bmatrix}
 
 令测量点集为$P=\{\vec{p}\}$，模型点集为 $X=\{\vec{x}\}$，并且点数目 $N_p$。目标是求使 $P$ 靠拢（变换）到 $X$ 的坐标系下，设目标函数为
 
-$$ f(\vec{q})=\frac{1}{N_p} \sum_{i=1}^{N_p} \left \| \vec{x}_i-R(\vec{q}_R ) \vec{p}_i-\vec{q}_T \right \|^2 $$   
+$$ f(\vec{q})=\frac{1}{N_p} \sum_{i=1}^{N_p} \left | \vec{x}_i-R(\vec{q}_R ) \vec{p}_i-\vec{q}_T \right |^2 $$   
 
 设点集 $P$ 的质心为
 
