@@ -2,38 +2,11 @@
 menu:
   archives: /archives
   tags: /tags
-  resume: /resume-cv
+  dream: http://dream.yfwz100.cn
 rss: /atom.xml
 
 category_dir: categories
 
-# Content
-excerpt_link: Read More
-fancybox: true
-
-# Sidebar
-sidebar: right
-widgets:
-- category
-- tag
-- tagcloud
-- archive
-- recent_posts
-
-# display widgets at the bottom of index pages (pagination == 2)
-index_widgets:
-# - category
-# - tagcloud
-# - archive
-
 # widget behavior
 archive_type: 'monthly'
 show_count: false
-
-# Miscellaneous
-google_analytics: false
-favicon: /favicon.png
-twitter:
-google_plus:
-fb_admins:
-fb_app_id:

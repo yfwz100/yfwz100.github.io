@@ -90,13 +90,13 @@ markdown:
     - markdown-it-sub
     - markdown-it-sup
     - name: markdown-it-mathjax
-      args: []
+      options: {}
   anchors:
     level: 2
     collisionSuffix: 'v'
     permalink: true
-    permalinkClass: header-anchor
-    permalinkSymbol: '# '
+    permalinkClass: anchor
+    permalinkSymbol: '#'
 
 # Deployment
 ## Docs: https://hexo.io/docs/deployment.html
