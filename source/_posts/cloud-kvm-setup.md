@@ -47,7 +47,7 @@ sudo apt-get install virt-manager
 
    1. 使用命令行的安装方式
 
-      ```shell
+      ```bash
       virt-install --virt-type kvm --name=test--ram=4096 --vcpus=2 \
       --os-type=linux \
       --location=/root/rhel-server-7.0-x86_64-dvd.iso \
@@ -59,7 +59,7 @@ sudo apt-get install virt-manager
 
    2. 使用 VNC 的方式进行安装：
 
-      ```shell
+      ```bash
       virt-install --virt-type kvm --name=test --ram=1024 --vcpus=1 \
       --os-type=linux \
       --location=/root/rhel-server-7.0-x86_64-dvd.iso \
@@ -70,7 +70,7 @@ sudo apt-get install virt-manager
 
       显示 VNC 端口
 
-      ```shell
+      ```bash
       virsh vncdisplay test
       ```
 
@@ -82,7 +82,7 @@ sudo apt-get install virt-manager
 
       然后重启 libvirtd 服务
 
-      ```shell
+      ```bash
       systemctl restart libvirtd
       ```
 
