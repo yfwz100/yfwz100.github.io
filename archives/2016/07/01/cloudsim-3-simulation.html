@@ -1,6 +1,11 @@
 <!DOCTYPE html><html><head><meta charset="utf-8"><title>植的博客</title><meta name="viewport" content="width=device-width, initial-scale=1"><link rel="stylesheet" href="//cdn.bootcss.com/font-awesome/4.6.3/css/font-awesome.min.css">
 <link rel="stylesheet" href="/css/base.css">
-<script type="text/x-mathjax-config">MathJax.Hub.Config({
+<script type="text/javascript">(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?ad6863b0ceb3ebc04afed41dc020bd78";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();</script><script type="text/x-mathjax-config">MathJax.Hub.Config({
   tex2jax: {
     inlineMath: [['$','$'], ['\\(','\\)']],
     displayMath: [['$$', '$$'], ['\\[','\\]']],
@@ -10,12 +15,7 @@
     TeX: { equationNumbers: { autoNumber: "AMS" },
          extensions: ["AMSmath.js", "AMSsymbols.js"] }
   }
-});</script><script src="//cdn.bootcss.com/mathjax/2.6.1/MathJax.js?config=default"></script><script type="text/javascript">(function() {
-  var hm = document.createElement("script");
-  hm.src = "https://hm.baidu.com/hm.js?ad6863b0ceb3ebc04afed41dc020bd78";
-  var s = document.getElementsByTagName("script")[0]; 
-  s.parentNode.insertBefore(hm, s);
-})();</script><meta name="generator" content="Hexo 4.2.0"><link rel="alternate" href="/atom.xml" title="植的博客" type="application/atom+xml">
+});</script><script src="//cdn.bootcss.com/mathjax/2.6.1/MathJax.js?config=default"></script><meta name="generator" content="Hexo 4.2.0"><link rel="alternate" href="/atom.xml" title="植的博客" type="application/atom+xml">
 </head><body><header><div class="page"><nav><ul class="brand"><li><a href="/">植的博客</a></li></ul><ul class="blog"><!-- List other items on menu.--><li class="menu-item"><a class="on" href="/archives">存档</a></li><li class="menu-item"><a href="/tags">标签</a></li><li class="menu-item"><a href="https://sanduck.github.io/about/" target="_blank" rel="noopener">梦</a></li></ul><ul class="social"><li><a class="fa fa-github" href="https://github.com/yfwz100" target="_blank" rel="noopener"><i class="sr-only">github</i></a></li><li><a class="fa fa-git" href="http://git.oschina.net/zhi" target="_blank" rel="noopener"><i class="sr-only">git</i></a></li><li><a class="fa fa-weibo" href="http://weibo.com/yfwz100" target="_blank" rel="noopener"><i class="sr-only">weibo</i></a></li></ul></nav></div></header><div class="post wrap"><div class="page"><div class="post-heading"><h1>CloudSim 笔记（3）- 仿真过程</h1></div><div class="post-body"><p>CloudSim 的仿真过程是一个相对简单而又有些复杂的过程。简单的地方在于它是对离散事件处理系统的一种抽象，复杂在于这种抽象导致的异步事件处理，难以直接从代码中一目了然地掌控仿真的流程。为了便于描述，把 CloudSim 的模拟层次分为三层：第一层是基于 CloudSim、SimEntity、 SimEvent 构建的离散事件系统，第二层是在 SimEntity 基础上构建 Datacenter 并在 Datacenter 下构建云计算实体模拟系统，第三层是以云计算基础设施上构建的调度模拟系统。</p>
 <a id="more"></a>
 <h2 id="第一层：异步事件处理系统"><a class="anchor" href="#第一层：异步事件处理系统">#</a>第一层：异步事件处理系统</h2>

@@ -1,6 +1,11 @@
 <!DOCTYPE html><html><head><meta charset="utf-8"><title>植的博客</title><meta name="viewport" content="width=device-width, initial-scale=1"><link rel="stylesheet" href="//cdn.bootcss.com/font-awesome/4.6.3/css/font-awesome.min.css">
 <link rel="stylesheet" href="/css/base.css">
-<script type="text/x-mathjax-config">MathJax.Hub.Config({
+<script type="text/javascript">(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?ad6863b0ceb3ebc04afed41dc020bd78";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();</script><script type="text/x-mathjax-config">MathJax.Hub.Config({
   tex2jax: {
     inlineMath: [['$','$'], ['\\(','\\)']],
     displayMath: [['$$', '$$'], ['\\[','\\]']],
@@ -10,12 +15,7 @@
     TeX: { equationNumbers: { autoNumber: "AMS" },
          extensions: ["AMSmath.js", "AMSsymbols.js"] }
   }
-});</script><script src="//cdn.bootcss.com/mathjax/2.6.1/MathJax.js?config=default"></script><script type="text/javascript">(function() {
-  var hm = document.createElement("script");
-  hm.src = "https://hm.baidu.com/hm.js?ad6863b0ceb3ebc04afed41dc020bd78";
-  var s = document.getElementsByTagName("script")[0]; 
-  s.parentNode.insertBefore(hm, s);
-})();</script><meta name="generator" content="Hexo 4.2.0"><link rel="alternate" href="/atom.xml" title="植的博客" type="application/atom+xml">
+});</script><script src="//cdn.bootcss.com/mathjax/2.6.1/MathJax.js?config=default"></script><meta name="generator" content="Hexo 4.2.0"><link rel="alternate" href="/atom.xml" title="植的博客" type="application/atom+xml">
 </head><body><header><div class="page"><nav><ul class="brand"><li><a href="/">植的博客</a></li></ul><ul class="blog"><!-- List other items on menu.--><li class="menu-item"><a class="on" href="/archives">存档</a></li><li class="menu-item"><a href="/tags">标签</a></li><li class="menu-item"><a href="https://sanduck.github.io/about/" target="_blank" rel="noopener">梦</a></li></ul><ul class="social"><li><a class="fa fa-github" href="https://github.com/yfwz100" target="_blank" rel="noopener"><i class="sr-only">github</i></a></li><li><a class="fa fa-git" href="http://git.oschina.net/zhi" target="_blank" rel="noopener"><i class="sr-only">git</i></a></li><li><a class="fa fa-weibo" href="http://weibo.com/yfwz100" target="_blank" rel="noopener"><i class="sr-only">weibo</i></a></li></ul></nav></div></header><div class="post wrap"><div class="page"><div class="post-heading"><h1>挖掘频繁序列的非正式调研</h1></div><div class="post-body"><p>频繁序列挖掘（sequential pattern mining）是数据挖掘里的热门话题之一，它的目标是挖掘数据里潜在的有价值的时间序列关系。频繁序列挖掘与时间序列挖掘相似，但不同的是频繁序列挖掘一般假设挖掘的项目是离散的，因而和时间序列的连续数据分列为两个不同的话题。由于频繁序列挖掘是从半结构化的序列中挖掘有价值的序列，也被归为结构化数据挖掘（structured data mining）的范畴。</p>
 <a id="more"></a>
 <p>频繁序列挖掘是从频繁项集（frequent pattern mining）(可以参考之前的<a href="/tags/%E9%A2%91%E7%B9%81%E9%A1%B9%E9%9B%86%E6%8C%96%E6%8E%98">博文</a>)、关联规则（association rule）挖掘中引申出来的。频繁项集挖掘关注的模式是项目（itemset）的共现性（co-ocurrence）；而关联规则关注的模式是从频繁项集中提取有意思的项集推导模式，例如 Itemset A → Itemset B。频繁序列挖掘则是从关联规则的基础上，根据项集发生的先后关系，推导项集之间的时间发展关系。</p>

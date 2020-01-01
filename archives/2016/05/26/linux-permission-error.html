@@ -1,6 +1,11 @@
 <!DOCTYPE html><html><head><meta charset="utf-8"><title>植的博客</title><meta name="viewport" content="width=device-width, initial-scale=1"><link rel="stylesheet" href="//cdn.bootcss.com/font-awesome/4.6.3/css/font-awesome.min.css">
 <link rel="stylesheet" href="/css/base.css">
-<script type="text/x-mathjax-config">MathJax.Hub.Config({
+<script type="text/javascript">(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?ad6863b0ceb3ebc04afed41dc020bd78";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();</script><script type="text/x-mathjax-config">MathJax.Hub.Config({
   tex2jax: {
     inlineMath: [['$','$'], ['\\(','\\)']],
     displayMath: [['$$', '$$'], ['\\[','\\]']],
@@ -10,12 +15,7 @@
     TeX: { equationNumbers: { autoNumber: "AMS" },
          extensions: ["AMSmath.js", "AMSsymbols.js"] }
   }
-});</script><script src="//cdn.bootcss.com/mathjax/2.6.1/MathJax.js?config=default"></script><script type="text/javascript">(function() {
-  var hm = document.createElement("script");
-  hm.src = "https://hm.baidu.com/hm.js?ad6863b0ceb3ebc04afed41dc020bd78";
-  var s = document.getElementsByTagName("script")[0]; 
-  s.parentNode.insertBefore(hm, s);
-})();</script><meta name="generator" content="Hexo 4.2.0"><link rel="alternate" href="/atom.xml" title="植的博客" type="application/atom+xml">
+});</script><script src="//cdn.bootcss.com/mathjax/2.6.1/MathJax.js?config=default"></script><meta name="generator" content="Hexo 4.2.0"><link rel="alternate" href="/atom.xml" title="植的博客" type="application/atom+xml">
 </head><body><header><div class="page"><nav><ul class="brand"><li><a href="/">植的博客</a></li></ul><ul class="blog"><!-- List other items on menu.--><li class="menu-item"><a class="on" href="/archives">存档</a></li><li class="menu-item"><a href="/tags">标签</a></li><li class="menu-item"><a href="https://sanduck.github.io/about/" target="_blank" rel="noopener">梦</a></li></ul><ul class="social"><li><a class="fa fa-github" href="https://github.com/yfwz100" target="_blank" rel="noopener"><i class="sr-only">github</i></a></li><li><a class="fa fa-git" href="http://git.oschina.net/zhi" target="_blank" rel="noopener"><i class="sr-only">git</i></a></li><li><a class="fa fa-weibo" href="http://weibo.com/yfwz100" target="_blank" rel="noopener"><i class="sr-only">weibo</i></a></li></ul></nav></div></header><div class="post wrap"><div class="page"><div class="post-heading"><h1>记一次 Linux 权限故障</h1></div><div class="post-body"><p>想起今天的误操作还真的心有余悸，差点就要重新安装系统了。缘起想改变 <code>/data</code> 这个目录的所有者，结果手误运行了 <code>sudo chown zhi:zhi /</code> ，导致整个系统的权限都重置为当前用户 zhi ！这样会导致什么问题？看看这篇讨论： <a href="http://askubuntu.com/questions/452860/usr-bin-sudo-must-be-owned-by-uid-0-and-have-the-setuid-bit-set" target="_blank" rel="noopener">AskUbuntu: sudo 权限错误</a> ，会导致 <code>sudo</code> 命令无法执行、 SSH 服务器停止响应，无法安装软件，无法远程登录。糟糕的是，这台服务器还是一台远程主机，我无法直接重装系统或者进入“recovery mode”修复 root 权限。想着今天做的基础设施就要报废了，心里真不是滋味。</p>
 <a id="more"></a>
 <p>要解决这个问题，首先要从恢复最高管理员权限开始。由于现代 Linux 系统，例如 Ubuntu 系，都已经采用 <code>sudo</code> 方案并设置 root 密码为随机密码，直接 su 切换到 root 并不现实。而直接运行 <code>sudo</code> ，则会出现：</p>

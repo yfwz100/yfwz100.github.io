@@ -1,6 +1,11 @@
 <!DOCTYPE html><html><head><meta charset="utf-8"><title>植的博客</title><meta name="viewport" content="width=device-width, initial-scale=1"><link rel="stylesheet" href="//cdn.bootcss.com/font-awesome/4.6.3/css/font-awesome.min.css">
 <link rel="stylesheet" href="/css/base.css">
-<script type="text/x-mathjax-config">MathJax.Hub.Config({
+<script type="text/javascript">(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?ad6863b0ceb3ebc04afed41dc020bd78";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();</script><script type="text/x-mathjax-config">MathJax.Hub.Config({
   tex2jax: {
     inlineMath: [['$','$'], ['\\(','\\)']],
     displayMath: [['$$', '$$'], ['\\[','\\]']],
@@ -10,12 +15,7 @@
     TeX: { equationNumbers: { autoNumber: "AMS" },
          extensions: ["AMSmath.js", "AMSsymbols.js"] }
   }
-});</script><script src="//cdn.bootcss.com/mathjax/2.6.1/MathJax.js?config=default"></script><script type="text/javascript">(function() {
-  var hm = document.createElement("script");
-  hm.src = "https://hm.baidu.com/hm.js?ad6863b0ceb3ebc04afed41dc020bd78";
-  var s = document.getElementsByTagName("script")[0]; 
-  s.parentNode.insertBefore(hm, s);
-})();</script><meta name="generator" content="Hexo 4.2.0"><link rel="alternate" href="/atom.xml" title="植的博客" type="application/atom+xml">
+});</script><script src="//cdn.bootcss.com/mathjax/2.6.1/MathJax.js?config=default"></script><meta name="generator" content="Hexo 4.2.0"><link rel="alternate" href="/atom.xml" title="植的博客" type="application/atom+xml">
 </head><body><header><div class="page"><nav><ul class="brand"><li><a href="/">植的博客</a></li></ul><ul class="blog"><!-- List other items on menu.--><li class="menu-item"><a class="on" href="/archives">存档</a></li><li class="menu-item"><a href="/tags">标签</a></li><li class="menu-item"><a href="https://sanduck.github.io/about/" target="_blank" rel="noopener">梦</a></li></ul><ul class="social"><li><a class="fa fa-github" href="https://github.com/yfwz100" target="_blank" rel="noopener"><i class="sr-only">github</i></a></li><li><a class="fa fa-git" href="http://git.oschina.net/zhi" target="_blank" rel="noopener"><i class="sr-only">git</i></a></li><li><a class="fa fa-weibo" href="http://weibo.com/yfwz100" target="_blank" rel="noopener"><i class="sr-only">weibo</i></a></li></ul></nav></div></header><div class="post wrap"><div class="page"><div class="post-heading"><h1>协同过滤模型</h1></div><div class="post-body"><p>今年早些时候看了一下协同过滤（ Collaborative Filtering ）的综述，看到 model-based 和 graph 方法，还只是觉得不明觉厉。然后，最近有两件事促使我再次看起这个模型，一个是同学的毕设可能会从这个方面着手做一些东西，另一方面，穿衣搭配算法比赛也用到了类似 graph 的商品关联想法。</p>
 <p>对于协同过滤，一个比较好的入门例子可以<a href="https://www.baidu.com/s?ie=utf-8&amp;f=8&amp;rsv_bp=0&amp;rsv_idx=1&amp;ch=&amp;tn=baidu&amp;bar=&amp;wd=%E5%8D%8F%E5%90%8C%E8%BF%87%E6%BB%A4&amp;rn=&amp;rsv_pq=a31bc9450001202e&amp;rsv_t=e111J%2FhqMM1XxboP3SfmMaA9bhaGIYHQ3hDHWDzgoWbZ8lsXw3iCSmf%2F0Kg&amp;rsv_enter=1&amp;rsv_sug3=1" target="_blank" rel="noopener" title="百度一下">百度一下</a>，或者参考<a href="http://www.cnblogs.com/luchen927/archive/2012/02/01/2325360.html" target="_blank" rel="noopener" title="协同过滤相关博文">这篇博客</a>。协同过滤有两个关键点：一个是构建评分矩阵，另一个是寻找相似用户和商品。</p>
 <p>协同过滤的核心想法是通过寻找相似的用户，然后根据相似用户的关系进行推荐。例如，A 和 B 相似，而 B 喜欢 C ，那么猜测 A 也喜欢 C。在连续剧里可能比较狗血，但是如果真的能够抓住 A 和 B 的相似性（例如都喜欢小清新），那么 A 喜欢 C 也是很可能的。这样，用户与用户之间就建立起了联系，关系网就形成一张图（graph）。</p>
