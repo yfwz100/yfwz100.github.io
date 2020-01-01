@@ -1,0 +1,32 @@
+<!DOCTYPE html><html><head><meta charset="utf-8"><title>植的博客</title><meta name="viewport" content="width=device-width, initial-scale=1"><link rel="stylesheet" href="//cdn.bootcss.com/font-awesome/4.6.3/css/font-awesome.min.css">
+<link rel="stylesheet" href="/css/base.css">
+<script type="text/x-mathjax-config">MathJax.Hub.Config({
+  tex2jax: {
+    inlineMath: [['$','$'], ['\\(','\\)']],
+    displayMath: [['$$', '$$'], ['\\[','\\]']],
+    processEscapes: true,
+    processEnvironments: true,
+    skipTags: ['script', 'noscript', 'style', 'textarea', 'pre','code'],
+    TeX: { equationNumbers: { autoNumber: "AMS" },
+         extensions: ["AMSmath.js", "AMSsymbols.js"] }
+  }
+});</script><script src="//cdn.bootcss.com/mathjax/2.6.1/MathJax.js?config=default"></script><script type="text/javascript">(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?ad6863b0ceb3ebc04afed41dc020bd78";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();</script><meta name="generator" content="Hexo 4.2.0"><link rel="alternate" href="/atom.xml" title="植的博客" type="application/atom+xml">
+</head><body><header><div class="page"><nav><ul class="brand"><li><a href="/">植的博客</a></li></ul><ul class="blog"><!-- List other items on menu.--><li class="menu-item"><a class="on" href="/archives">存档</a></li><li class="menu-item"><a href="/tags">标签</a></li><li class="menu-item"><a href="https://sanduck.github.io/about/" target="_blank" rel="noopener">梦</a></li></ul><ul class="social"><li><a class="fa fa-${name}" href="https://github.com/yfwz100" target="_blank" rel="noopener"><i class="sr-only">github</i></a></li><li><a class="fa fa-${name}" href="http://git.oschina.net/zhi" target="_blank" rel="noopener"><i class="sr-only">git</i></a></li><li><a class="fa fa-${name}" href="http://weibo.com/yfwz100" target="_blank" rel="noopener"><i class="sr-only">weibo</i></a></li></ul></nav></div></header><div class="post wrap"><div class="page"><div class="post-heading"><h1>2016 华为笔试</h1></div><div class="post-body"><p>难度：★★★</p>
+<p>今年华为笔试以普通 OJ 题目为主。分为三体：第一题交错数列排序；第二题 HDU2516 取石子游戏；第三题是黑白点配对问题。每题根据通过的测试用例比例来给分，大概 100 分以上可以面试。</p>
+<a id="more"></a>
+<p>第一题是交错数列，应该是这些题里面最简单的。如果用最简单的冒泡法排序，两个循环间可以直接排序两个数组，这样的效率最高。又或者封装间隔排序的方法，对奇数、偶数分别排序，时间复杂度依然是 O(n) 。</p>
+<p>第二题是 HDU2516 的原题，刷 OJ 的同学估计很熟悉了。解法就是斐波那契数列，写前 10 个应该可以找出规律。不过时间太赶，没来得及想。至于深入研究，实际上是一个动态规划问题，见 <a href="http://www.cnblogs.com/kuangbin/p/3205070.html" target="_blank" rel="noopener">HDU 2516 取石子游戏(FIB博弈)</a> 。</p>
+<p>第三题是寻找给定两对点集中的最大配对数目。这题想了一会，一开始想用第一题的交错数列的方式来找点对，但是发现二维空间不像一维空间，比较大小没有传递性。于是，想了另一个策略，找出所有黑点能够对应的白点，然后按照对应的白点的数量升序遍历，不断排除黑白点的配对，最终得出最大的匹配数目。这样做应该算是一个贪心的策略，可是最终还是超时了（时间复杂度 O(n^2)，确实有点夸张了）。没找到其他 OJ 的实现，暂时也找不到很好的答案。</p>
+</div><div class="post-meta">由 <span class="author"><a href="mailto: yfwz100@yeah.net">Zhi</a></span> 写于 <span class="date">2016年3月19日</span> ·<span class="tags"><a class="tag" href="/tags/笔试/">笔试</a><a class="tag" href="/tags/OJ/">OJ</a></span></div><div class="cloud-tie-wrapper" id="cloud-tie-wrapper"></div><script type="text/javascript" src="https://img1.cache.netease.com/f2e/tie/yun/sdk/loader.js"></script><script type="text/javascript">var cloudTieConfig = {
+  url: document.location.href, 
+  sourceId: "",
+  productKey: "2311812cfc39469b8c071ba8f99d562e",
+  target: "cloud-tie-wrapper"
+};
+var yunManualLoad = true;
+Tie.loader("aHR0cHM6Ly9hcGkuZ2VudGllLjE2My5jb20vcGMvbGl2ZXNjcmlwdC5odG1s", true);</script><script type="text/javascript" src="https://img1.cache.netease.com/f2e/tie/yun/sdk/loader.js"></script></div></div><footer><div class="page"><address class="author">&copy; Zhi</address><div class="hexo-powered">博客由 <a href="http://www.hexo.io" target="_blank" rel="noopener">Hexo</a> 驱动</div><div class="rss"><a class="fa fa-rss-square" href="/atom.xml"></a></div></div></footer></body></html>

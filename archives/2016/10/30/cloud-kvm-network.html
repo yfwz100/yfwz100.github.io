@@ -1,0 +1,67 @@
+<!DOCTYPE html><html><head><meta charset="utf-8"><title>植的博客</title><meta name="viewport" content="width=device-width, initial-scale=1"><link rel="stylesheet" href="//cdn.bootcss.com/font-awesome/4.6.3/css/font-awesome.min.css">
+<link rel="stylesheet" href="/css/base.css">
+<script type="text/x-mathjax-config">MathJax.Hub.Config({
+  tex2jax: {
+    inlineMath: [['$','$'], ['\\(','\\)']],
+    displayMath: [['$$', '$$'], ['\\[','\\]']],
+    processEscapes: true,
+    processEnvironments: true,
+    skipTags: ['script', 'noscript', 'style', 'textarea', 'pre','code'],
+    TeX: { equationNumbers: { autoNumber: "AMS" },
+         extensions: ["AMSmath.js", "AMSsymbols.js"] }
+  }
+});</script><script src="//cdn.bootcss.com/mathjax/2.6.1/MathJax.js?config=default"></script><script type="text/javascript">(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?ad6863b0ceb3ebc04afed41dc020bd78";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();</script><meta name="generator" content="Hexo 4.2.0"><link rel="alternate" href="/atom.xml" title="植的博客" type="application/atom+xml">
+</head><body><header><div class="page"><nav><ul class="brand"><li><a href="/">植的博客</a></li></ul><ul class="blog"><!-- List other items on menu.--><li class="menu-item"><a class="on" href="/archives">存档</a></li><li class="menu-item"><a href="/tags">标签</a></li><li class="menu-item"><a href="https://sanduck.github.io/about/" target="_blank" rel="noopener">梦</a></li></ul><ul class="social"><li><a class="fa fa-${name}" href="https://github.com/yfwz100" target="_blank" rel="noopener"><i class="sr-only">github</i></a></li><li><a class="fa fa-${name}" href="http://git.oschina.net/zhi" target="_blank" rel="noopener"><i class="sr-only">git</i></a></li><li><a class="fa fa-${name}" href="http://weibo.com/yfwz100" target="_blank" rel="noopener"><i class="sr-only">weibo</i></a></li></ul></nav></div></header><div class="post wrap"><div class="page"><div class="post-heading"><h1>KVM 以及桥接网络配置</h1></div><div class="post-body"><p>最近在折腾 KVM 以及虚拟化，KVM安装后默认的网络链接方式是NAT，此时虚拟机虽然可以与本机通信，但虚拟机的IP地址是一个私有地址，本机外的网络无法访问该虚拟机。</p>
+<a id="more"></a>
+<h3 id="虚拟机网络连接的方式"><a class="anchor" href="#虚拟机网络连接的方式">#</a>虚拟机网络连接的方式</h3>
+<p>接触过 VirtualBox、VMware 的话，对虚拟机网络配置肯定不会陌生。虚拟机网络连接常见的有 3 种方式：</p>
+<ol>
+<li>NAT 网络：即内部地址转换，相当于从物理网卡外接了一个虚拟的路由，然后所有虚拟机都连接到该“路由器”上，虚拟机可以借助这个路由器访问到外面的网络，但外面的网络却无法访问，因为虚拟机的地址只是路由器上唯一的，出了路由器就不再唯一了。</li>
+<li>桥接网络：也叫物理设备共享，相当于虚拟了一个和服务网卡一样的网卡，这个虚拟网卡和物理网卡是平行的关系，并且虚拟机共用物理网卡额资源。这样，虚拟机能够接入外部网络，不受物理机的限制了。</li>
+<li>Host-Only 网络：与 NAT 类似，但是比 NAT 更封闭，只有物理机能够访问该虚拟机，其他虚拟机也不能访问。</li>
+</ol>
+<p>一般安装 KVM 后都会安装 bridge-util，这是 Linux 下用于桥接网卡的工具集，通过该工具集可以虚拟出一个新的网卡。其中， bridge-util 安装后会自动建立一个 NAT 网络，即 virbr0 网卡，如果虚拟机连接到该网卡上，则连接到 NAT 网络了。而下文主要介绍建立桥接网络的做法。</p>
+<h3 id="桥接网络的建立"><a class="anchor" href="#桥接网络的建立">#</a>桥接网络的建立</h3>
+<ol>
+<li>
+<p>新建虚拟网桥</p>
+<p>编辑 /etc/network/interfaces 文件，根据以下两种情况的一种添加如下内容：</p>
+<ol>
+<li>
+<p>假设外部网络是一个 DHCP 动态分配 IP 的网络环境，并且网卡名字为 eth0 ：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">auto br0</span><br><span class="line">iface br0 inet dhcp</span><br><span class="line">bridge_ports eth0</span><br><span class="line">bridge_stp off</span><br><span class="line">bridge_fd 0</span><br></pre></td></tr></table></figure>
+<p>其中第一句话建立了虚拟网桥 br0，并且该接口使用 DHCP 分配 IP 等信息，后三句是配置网桥相关的属性。bridge_ports 配置了该网桥连接到的虚拟网卡 eth0，并关闭 <a href="http://baike.baidu.com/link?url=wa8X56FKMcQ00SxYDZZmEFvetw-FI83bKa3pnHs62KLbGWEGz0rMKPM6xGY0aW0qRYpUc7cQaui3sCxkDXwJ8IrjgVd4rbZaqOfVnDmv4wO" target="_blank" rel="noopener">stp（生成树协议）</a>，设置 fd（forwarding delay，转发延迟） 为 0 。</p>
+</li>
+<li>
+<p>假设外部网络是静态分配的网络，并且网卡名字为 eth0 ：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">auto br0</span><br><span class="line">iface br0 inet static</span><br><span class="line">address 192.168.200.130</span><br><span class="line">network 192.168.200.0</span><br><span class="line">netmask 255.255.255.0</span><br><span class="line">broadcast 192.168.200.255</span><br><span class="line">gateway 192.168.200.1</span><br><span class="line">dns-nameservers 8.8.8.8</span><br><span class="line">bridge_ports eth0</span><br><span class="line">bridge_stp off</span><br><span class="line">bridge_fd 0</span><br><span class="line">bridge_maxwait 0</span><br></pre></td></tr></table></figure>
+<p>需要在文件中编辑 address/network/netmask/broadcast/gateway/dsn-nameservers 等内容。</p>
+</li>
+</ol>
+</li>
+<li>
+<p>重新启动网络服务（以 Ubuntu 为例）：</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">service networking restart</span><br></pre></td></tr></table></figure>
+</li>
+<li>
+<p>为 KVM 虚拟机配置网络，编辑虚拟机配置文件：</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">virsh edit VM_ID</span><br></pre></td></tr></table></figure>
+<p>文件示意如下：</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">interface</span> <span class="attr">type</span>=<span class="string">'...'</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">mac</span> <span class="attr">address</span>=<span class="string">'...'</span>/&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">source</span> <span class="attr">bridge</span>=<span class="string">'...'</span>/&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">model</span> <span class="attr">type</span>=<span class="string">'rtl8139'</span>/&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">address</span> <span class="attr">type</span>=<span class="string">'pci'</span> <span class="attr">domain</span>=<span class="string">'0x0000'</span> <span class="attr">bus</span>=<span class="string">'0x00'</span> <span class="attr">slot</span>=<span class="string">'0x03'</span> <span class="attr">function</span>=<span class="string">'0x0'</span>/&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">interface</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<p>把其中 type 改为 bridge，并且 source 标签中的 bridge 属性改为 br0 。</p>
+<p>重启虚拟机。</p>
+</li>
+</ol>
+</div><div class="post-meta">由 <span class="author"><a href="mailto: yfwz100@yeah.net">Zhi</a></span> 写于 <span class="date">2016年10月30日</span> ·<span class="tags"><a class="tag" href="/tags/云计算/">云计算</a><a class="tag" href="/tags/虚拟化/">虚拟化</a></span></div><div class="cloud-tie-wrapper" id="cloud-tie-wrapper"></div><script type="text/javascript" src="https://img1.cache.netease.com/f2e/tie/yun/sdk/loader.js"></script><script type="text/javascript">var cloudTieConfig = {
+  url: document.location.href, 
+  sourceId: "",
+  productKey: "2311812cfc39469b8c071ba8f99d562e",
+  target: "cloud-tie-wrapper"
+};
+var yunManualLoad = true;
+Tie.loader("aHR0cHM6Ly9hcGkuZ2VudGllLjE2My5jb20vcGMvbGl2ZXNjcmlwdC5odG1s", true);</script><script type="text/javascript" src="https://img1.cache.netease.com/f2e/tie/yun/sdk/loader.js"></script></div></div><footer><div class="page"><address class="author">&copy; Zhi</address><div class="hexo-powered">博客由 <a href="http://www.hexo.io" target="_blank" rel="noopener">Hexo</a> 驱动</div><div class="rss"><a class="fa fa-rss-square" href="/atom.xml"></a></div></div></footer></body></html>

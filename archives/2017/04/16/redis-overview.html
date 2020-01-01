@@ -1,0 +1,195 @@
+<!DOCTYPE html><html><head><meta charset="utf-8"><title>植的博客</title><meta name="viewport" content="width=device-width, initial-scale=1"><link rel="stylesheet" href="//cdn.bootcss.com/font-awesome/4.6.3/css/font-awesome.min.css">
+<link rel="stylesheet" href="/css/base.css">
+<script type="text/x-mathjax-config">MathJax.Hub.Config({
+  tex2jax: {
+    inlineMath: [['$','$'], ['\\(','\\)']],
+    displayMath: [['$$', '$$'], ['\\[','\\]']],
+    processEscapes: true,
+    processEnvironments: true,
+    skipTags: ['script', 'noscript', 'style', 'textarea', 'pre','code'],
+    TeX: { equationNumbers: { autoNumber: "AMS" },
+         extensions: ["AMSmath.js", "AMSsymbols.js"] }
+  }
+});</script><script src="//cdn.bootcss.com/mathjax/2.6.1/MathJax.js?config=default"></script><script type="text/javascript">(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?ad6863b0ceb3ebc04afed41dc020bd78";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();</script><meta name="generator" content="Hexo 4.2.0"><link rel="alternate" href="/atom.xml" title="植的博客" type="application/atom+xml">
+</head><body><header><div class="page"><nav><ul class="brand"><li><a href="/">植的博客</a></li></ul><ul class="blog"><!-- List other items on menu.--><li class="menu-item"><a class="on" href="/archives">存档</a></li><li class="menu-item"><a href="/tags">标签</a></li><li class="menu-item"><a href="https://sanduck.github.io/about/" target="_blank" rel="noopener">梦</a></li></ul><ul class="social"><li><a class="fa fa-${name}" href="https://github.com/yfwz100" target="_blank" rel="noopener"><i class="sr-only">github</i></a></li><li><a class="fa fa-${name}" href="http://git.oschina.net/zhi" target="_blank" rel="noopener"><i class="sr-only">git</i></a></li><li><a class="fa fa-${name}" href="http://weibo.com/yfwz100" target="_blank" rel="noopener"><i class="sr-only">weibo</i></a></li></ul></nav></div></header><div class="post wrap"><div class="page"><div class="post-heading"><h1>学习 Redis 小结</h1></div><div class="post-body"><p>本科的时候就听说过 NoSQL 数据库，例如文档型数据库、键值存储、宽表存储等。 Redis 就是一个键值存储。键值存储的代表还有很多，例如 memcache 等。键值存储的特点是根据一个 key 找到一个 value，因此非常适合做缓存。但是 Redis 比一般的键值存储要更高级，因为其中的 value 带有丰富的数据结构。</p>
+<a id="more"></a>
+<p>相对于其他键值存储，Redis 的优点：</p>
+<ul>
+<li>速度快。每秒可执行大约110000次的设置(SET)操作，每秒大约可执行81000次的读取/获取(GET)操作。</li>
+<li>支持丰富的数据类型。例如列表，集合，排序集和散列等等。这使得Redis很容易被用来解决各种问题，因为我们知道哪些问题可以更好使用地哪些数据类型来处理解决。</li>
+<li>操作具有原子性。所有操作都是原子操作，这确保如果两个客户端并发访问，Redis服务器能接收更新的值。</li>
+<li>多种用途，如：缓存、消息队列(Redis本地支持发布/订阅)，应用程序中的任何短期数据。</li>
+</ul>
+<p>丰富的集合操作并不被所有键值存储支持，应用会被高度耦合到这些数据结构实现中，不便于替换：</p>
+<ul>
+<li>操作原子性，所有 Redis 命令都是原子的，也就是说所有对 Redis 的数据结构的操作都不需要加锁。</li>
+<li>复杂数据类型支持，例如哈希表，使用 memcache 进行替代并保持其语义将引入一定的工作量</li>
+<li>消息处理，需要使用外部的消息处理工具进行替代。</li>
+</ul>
+<p>如果我们发现了 Redis 的瓶颈，那么我们对 Redis 进行替代的代价是很大的。</p>
+<h2 id="基本键值对操作"><a class="anchor" href="#基本键值对操作">#</a>基本键值对操作</h2>
+<p>基本的键值对操作（也称为字符串类型 value 的操作）：</p>
+<table>
+<thead>
+<tr>
+<th>命令</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>set KEY VALUE [EXPIRE_TIME]</td>
+<td>设置键值对，并且可以额外地附加一个过期时间</td>
+</tr>
+<tr>
+<td>get KEY</td>
+<td>获取一个键的值</td>
+</tr>
+<tr>
+<td>del KEY</td>
+<td>删除一个键值对</td>
+</tr>
+<tr>
+<td>exists KEY</td>
+<td>检测一个键是否存在</td>
+</tr>
+<tr>
+<td>touch KEY</td>
+<td>更新一个键值对的访问时间，延长过期时间</td>
+</tr>
+<tr>
+<td>keys [REG_EX]</td>
+<td>检测所有的键或符合某种前缀/后缀的键</td>
+</tr>
+<tr>
+<td>setex KEY VALUE</td>
+<td>仅在 KEY 不存在时候设置为 VALUE</td>
+</tr>
+</tbody>
+</table>
+<p>这几个命令应该是一般键值存储都支持的操作。利用这些简单的命令就可以做一个简单的缓存了。然而 Redis 不止于此， Redis 还支持一些有意思的数据类型，例如，我们的 value 是一个数组，并且里面的数不能重复， Redis 提供了 Set 类型的数据结构。要注意到，这些操作都是原子的，因此不需要锁进行同步，这也是 Redis 易于使用的重要原因。</p>
+<h2 id="无序不重复集合"><a class="anchor" href="#无序不重复集合">#</a>无序不重复集合</h2>
+<table>
+<thead>
+<tr>
+<th>命令</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>sadd KEY VALUE</td>
+<td>往 KEY 中新增一个元素，如果重复则什么都不做</td>
+</tr>
+<tr>
+<td>srem KEY VALUE</td>
+<td>往 KEY 中删除一个元素，如果不存在则什么都不做</td>
+</tr>
+<tr>
+<td>smembers KEY</td>
+<td>返回 KEY 中所有元素</td>
+</tr>
+<tr>
+<td>sismember KEY VALUE</td>
+<td>判断 VALUE 是否在集合中</td>
+</tr>
+<tr>
+<td>scard KEY</td>
+<td>返回 KEY 中元素的数目</td>
+</tr>
+</tbody>
+</table>
+<p>注意到这里只有针对 Set 的操作，实际上上述 del、exists 操作可以通用在这个场合下。Redis 只是对 value 的类型进行了特殊的处理，所有针对 KEY 的操作，仍然通用基本键值对的操作。Set 类型的好处是，用户在客户端中不需要对 value 进行处理，直接就可以添加元素并保持 value 中 Set 的语义。</p>
+<h2 id="有序集合"><a class="anchor" href="#有序集合">#</a>有序集合</h2>
+<p>Redis 除了提供 Set 集合外，还提供了有序序列，可以保持 value 中值的顺序，并且支持取范围的操作，类似 Java 中的 TreeSet 。</p>
+<table>
+<thead>
+<tr>
+<th>命令</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>zadd KEY VALUE</td>
+<td>添加 VALUE 到 KEY 所代表的有序列表中</td>
+</tr>
+<tr>
+<td>zrem KEY VALUE</td>
+<td>从 KEY 中删除 VALUE</td>
+</tr>
+<tr>
+<td>zcard KEY</td>
+<td>返回 KEY 中元素数目</td>
+</tr>
+<tr>
+<td>zount KEY MIN MAX</td>
+<td>返回某一个范围的数目</td>
+</tr>
+<tr>
+<td>zrange KEY MIN MAX</td>
+<td>返回某一个范围内的元素</td>
+</tr>
+<tr>
+<td>zrevrange KEY MIN MAX</td>
+<td>返回某一个范围内的元素，并逆序排列</td>
+</tr>
+<tr>
+<td>……</td>
+<td><a href="https://redis.io/commands#sorted_set" target="_blank" rel="noopener">更多</a></td>
+</tr>
+</tbody>
+</table>
+<h2 id="哈希表"><a class="anchor" href="#哈希表">#</a>哈希表</h2>
+<p>哈希表代表的是二层键值对，在一个 key 下面嵌套一个 key-value 存储，这种好处是便于层级管理。</p>
+<table>
+<thead>
+<tr>
+<th>命令</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>hset KEY FIELD VALUE</td>
+<td>设置 KEY 的 FIELD 里的 VALUE</td>
+</tr>
+<tr>
+<td>hget KEY FIELD</td>
+<td>获取 KEY 的 FIELD 里的 VALUE</td>
+</tr>
+<tr>
+<td>hgetall KEY</td>
+<td>获取 KEY 的所有 FIELD 以及 VALUE</td>
+</tr>
+<tr>
+<td>hlen  KEY</td>
+<td>获取 KEY 的 FIELD 的数量</td>
+</tr>
+<tr>
+<td>hkeys KEY</td>
+<td>获取 KEY 的所有 FIELD</td>
+</tr>
+<tr>
+<td>hexists KEY FIELD</td>
+<td>判断 KEY 里 FIELD 是否存在</td>
+</tr>
+</tbody>
+</table>
+<p>但这种层级结构是有限的，并不支持哈希表中再嵌套一个哈希表或者复杂的结构。有的开发者可能会把复杂的数据结构序列化成 JSON 然后存储，但是这样的话就把存储逻辑耦合到业务逻辑中了，可能并不能享受到 Redis 的数据结构方面的改进。</p>
+<h2 id="小结"><a class="anchor" href="#小结">#</a>小结</h2>
+<p>Redis 还支持 Geo 地理位置查询以及列表操作等，由于没有用到所以就没有分享。实际上把 KV 存储扩展为一个数据结构存储器，并与业务逻辑相分离。Redis 提供的丰富数据结构也是一种操作元语，能让开发者在使用数据结构的时候不需要复杂的逻辑，例如加锁、同步等，同时获得更高的访问速度或吞吐量。</p>
+<p>Redis 在 3.0 才支持集群，而且这个集群还比较原始，例如不支持自动发现等，目前采用的基本上是静态配置方式。对于数据结构的 benchmark 由于缺少竞争者也比较少见，对于在分布式环境下是否还能保持复杂数据结构的性能也是一个问题。因此，Redis 要成为一个通用的数据结构存储器还有比较长的路要走。</p>
+</div><div class="post-meta">由 <span class="author"><a href="mailto: yfwz100@yeah.net">Zhi</a></span> 写于 <span class="date">2017年4月16日</span> ·<span class="tags"><a class="tag" href="/tags/数据库/">数据库</a></span></div><div class="cloud-tie-wrapper" id="cloud-tie-wrapper"></div><script type="text/javascript" src="https://img1.cache.netease.com/f2e/tie/yun/sdk/loader.js"></script><script type="text/javascript">var cloudTieConfig = {
+  url: document.location.href, 
+  sourceId: "",
+  productKey: "2311812cfc39469b8c071ba8f99d562e",
+  target: "cloud-tie-wrapper"
+};
+var yunManualLoad = true;
+Tie.loader("aHR0cHM6Ly9hcGkuZ2VudGllLjE2My5jb20vcGMvbGl2ZXNjcmlwdC5odG1s", true);</script><script type="text/javascript" src="https://img1.cache.netease.com/f2e/tie/yun/sdk/loader.js"></script></div></div><footer><div class="page"><address class="author">&copy; Zhi</address><div class="hexo-powered">博客由 <a href="http://www.hexo.io" target="_blank" rel="noopener">Hexo</a> 驱动</div><div class="rss"><a class="fa fa-rss-square" href="/atom.xml"></a></div></div></footer></body></html>

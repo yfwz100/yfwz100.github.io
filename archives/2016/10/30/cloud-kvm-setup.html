@@ -1,0 +1,103 @@
+<!DOCTYPE html><html><head><meta charset="utf-8"><title>植的博客</title><meta name="viewport" content="width=device-width, initial-scale=1"><link rel="stylesheet" href="//cdn.bootcss.com/font-awesome/4.6.3/css/font-awesome.min.css">
+<link rel="stylesheet" href="/css/base.css">
+<script type="text/x-mathjax-config">MathJax.Hub.Config({
+  tex2jax: {
+    inlineMath: [['$','$'], ['\\(','\\)']],
+    displayMath: [['$$', '$$'], ['\\[','\\]']],
+    processEscapes: true,
+    processEnvironments: true,
+    skipTags: ['script', 'noscript', 'style', 'textarea', 'pre','code'],
+    TeX: { equationNumbers: { autoNumber: "AMS" },
+         extensions: ["AMSmath.js", "AMSsymbols.js"] }
+  }
+});</script><script src="//cdn.bootcss.com/mathjax/2.6.1/MathJax.js?config=default"></script><script type="text/javascript">(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?ad6863b0ceb3ebc04afed41dc020bd78";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();</script><meta name="generator" content="Hexo 4.2.0"><link rel="alternate" href="/atom.xml" title="植的博客" type="application/atom+xml">
+</head><body><header><div class="page"><nav><ul class="brand"><li><a href="/">植的博客</a></li></ul><ul class="blog"><!-- List other items on menu.--><li class="menu-item"><a class="on" href="/archives">存档</a></li><li class="menu-item"><a href="/tags">标签</a></li><li class="menu-item"><a href="https://sanduck.github.io/about/" target="_blank" rel="noopener">梦</a></li></ul><ul class="social"><li><a class="fa fa-${name}" href="https://github.com/yfwz100" target="_blank" rel="noopener"><i class="sr-only">github</i></a></li><li><a class="fa fa-${name}" href="http://git.oschina.net/zhi" target="_blank" rel="noopener"><i class="sr-only">git</i></a></li><li><a class="fa fa-${name}" href="http://weibo.com/yfwz100" target="_blank" rel="noopener"><i class="sr-only">weibo</i></a></li></ul></nav></div></header><div class="post wrap"><div class="page"><div class="post-heading"><h1>KVM 虚拟机配置</h1></div><div class="post-body"><p>KVM 是一种全虚拟化技术，由 Linux 内核自身集成，市面上很多云服务提供商都是用该技术进行资源的虚拟化，也是 OpenStack 等云计算架构的虚拟化基础。很不博客列出了 KVM 的安装和使用过程，但是都不够具体，本博客在总结网络博客的基础上，收集整理自己遇到的坑，以方便大家做参考。</p>
+<a id="more"></a>
+<h3 id="安装准备"><a class="anchor" href="#安装准备">#</a>安装准备</h3>
+<p>确定物理服务器支持虚拟化技术：</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">grep vmx /proc/cpuinfo <span class="comment"># Intel 系列</span></span><br><span class="line">grep svm /proc/cpuinfo <span class="comment"># AMD 系列</span></span><br></pre></td></tr></table></figure>
+<p>需要安装 Qemu、KVM 等组件：</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo apt-get install kvm qemu qemu-kvm libvirt-bin</span><br></pre></td></tr></table></figure>
+<p>如果需要安装图形界面，还可以安装：</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo apt-get install virt-manager</span><br></pre></td></tr></table></figure>
+<h3 id="安装"><a class="anchor" href="#安装">#</a>安装</h3>
+<p>进行以下操作时，请注意当前用户拥有高级的读写权限。用 virsh 创建的虚拟机，一般会赋予 kvm 用户组读写的权限，因此，可以把当前操作用户加入到 kvm 组里。更简单的办法是使用 root 来执行以下操作。</p>
+<ol>
+<li>
+<p>新建硬盘镜像：</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">qemu-img create -f qcow2 /var/lib/libvirt/images/test.qcow2 20G</span><br></pre></td></tr></table></figure>
+</li>
+<li>
+<p>在服务器上准备好 OS 的镜像文件，例如从 <a href="http://mirrors.ustc.edu.cn" target="_blank" rel="noopener">http://mirrors.ustc.edu.cn</a> 上下载。</p>
+</li>
+<li>
+<p>使用 virt-instal 或 virsh 进行远程安装</p>
+<ol>
+<li>
+<p>使用命令行的安装方式</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">virt-install --virt-type kvm --name=<span class="built_in">test</span>--ram=4096 --vcpus=2 \</span><br><span class="line">--os-type=linux \</span><br><span class="line">--location=/root/rhel-server-7.0-x86_64-dvd.iso \</span><br><span class="line">--disk path=/var/lib/libvirt/images/test.qcow2,format=qcow2 \</span><br><span class="line">--network bridge:virbr0 \</span><br><span class="line">--graphics none \</span><br><span class="line">--extra-args=<span class="string">'console=tty0 console=ttyS0,115200n8 serial'</span></span><br></pre></td></tr></table></figure>
+</li>
+<li>
+<p>使用 VNC 的方式进行安装：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">virt-install --virt-type kvm --name=<span class="built_in">test</span> --ram=1024 --vcpus=1 \</span><br><span class="line">--os-type=linux \</span><br><span class="line">--location=/root/rhel-server-7.0-x86_64-dvd.iso \</span><br><span class="line">--disk /var/lib/libvirt/images/test.qcow2,format=qcow2 \</span><br><span class="line">--network bridge:brx \</span><br><span class="line">--graphics vnc,password=123456</span><br></pre></td></tr></table></figure>
+<p>显示 VNC 端口</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">virsh vncdisplay <span class="built_in">test</span></span><br></pre></td></tr></table></figure>
+<p>网上也有人提到 /etc/libvirt/qemu.conf 中的需要解锁</p>
+<figure class="highlight ini"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># vnc_listen="0.0.0.0"</span></span><br></pre></td></tr></table></figure>
+<p>然后重启 libvirtd 服务</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">systemctl restart libvirtd</span><br></pre></td></tr></table></figure>
+</li>
+<li>
+<p>使用 virsh 来创建虚拟机：</p>
+<p>创建虚拟机描述文件，例如 ubuntu.xml ，内容如下：</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">domain</span> <span class="attr">type</span>=<span class="string">'kvm'</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">name</span>&gt;</span>ubuntu2<span class="tag">&lt;/<span class="name">name</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">memory</span>&gt;</span>1048576<span class="tag">&lt;/<span class="name">memory</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">vcpu</span>&gt;</span>1<span class="tag">&lt;/<span class="name">vcpu</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">os</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">type</span> <span class="attr">arch</span>=<span class="string">'x86_64'</span> <span class="attr">machine</span>=<span class="string">'pc'</span>&gt;</span>hvm<span class="tag">&lt;/<span class="name">type</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">boot</span> <span class="attr">dev</span>=<span class="string">'cdrom'</span>/&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">boot</span> <span class="attr">dev</span>=<span class="string">'hd'</span>/&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">os</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">features</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">acpi</span>/&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">apic</span>/&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">pae</span>/&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">features</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">clock</span> <span class="attr">offset</span> = <span class="string">'localtime'</span>/&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">on_poweroff</span>&gt;</span>destroy<span class="tag">&lt;/<span class="name">on_poweroff</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">on_reboot</span>&gt;</span>restart<span class="tag">&lt;/<span class="name">on_reboot</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">on_crash</span>&gt;</span>destroy<span class="tag">&lt;/<span class="name">on_crash</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">devices</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">emulator</span>&gt;</span>/usr/bin/kvm<span class="tag">&lt;/<span class="name">emulator</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">disk</span> <span class="attr">type</span>=<span class="string">'file'</span> <span class="attr">device</span>=<span class="string">'disk'</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">driver</span> <span class="attr">name</span>=<span class="string">'qemu'</span> <span class="attr">type</span>=<span class="string">'qcow2'</span>/&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">source</span> <span class="attr">file</span>=<span class="string">'/home/zhi/qemu/ubuntu2.img'</span>/&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">target</span> <span class="attr">dev</span>=<span class="string">'hda'</span> <span class="attr">bus</span>=<span class="string">'ide'</span>/&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">disk</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">disk</span> <span class="attr">type</span>=<span class="string">'file'</span> <span class="attr">device</span>=<span class="string">'cdrom'</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">source</span> <span class="attr">file</span>=<span class="string">'/home/zhi/img/ubuntu-16.10-server-amd64.iso'</span>/&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">target</span> <span class="attr">dev</span>=<span class="string">'hdb'</span> <span class="attr">bus</span>=<span class="string">'ide'</span>/&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">disk</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">interface</span> <span class="attr">type</span>=<span class="string">'bridge'</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">source</span> <span class="attr">bridge</span>=<span class="string">'virbr0'</span>/&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">interface</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">input</span> <span class="attr">type</span>=<span class="string">'tablet'</span> <span class="attr">bus</span>=<span class="string">'usb'</span>/&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">input</span> <span class="attr">type</span>=<span class="string">'mouse'</span> <span class="attr">bus</span>=<span class="string">'ps2'</span>/&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">graphics</span> <span class="attr">type</span> =<span class="string">'vnc'</span> <span class="attr">port</span>=<span class="string">'-1'</span> <span class="attr">listen</span>=<span class="string">'0.0.0.0'</span> <span class="attr">keymap</span>=<span class="string">'en-us'</span>/&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">devices</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">domain</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<p>其中需要注意编辑 device=‘cdrom’/device=‘disk’/interface 这几个标签的内容。然后执行</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">virsh define ubuntu.xml</span><br></pre></td></tr></table></figure>
+<p>即启动安装过程，可以用 VNC Viewer 进行远程安装。</p>
+</li>
+</ol>
+<p>注：以上 3 个步骤选择一种进行操作即可，其作用是等价的。其中前两种需要安装 virtinst 工具。</p>
+</li>
+<li>
+<p>如果是通过 virbr0 这个网卡进行操作的话（默认 virbr0 是 NAT 并使用 dnsmaq 来分配 IP 地址），可以通过以下命令查看生成的虚拟机的 IP 地址：</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cat /var/lib/libvirt/dnsmasq/virbr0.status</span><br></pre></td></tr></table></figure>
+<p>注意其中的 hostname 对应的 IP 地址。</p>
+</li>
+</ol>
+<h3 id="启动"><a class="anchor" href="#启动">#</a>启动</h3>
+<p>可以使用 virsh 来管理虚拟机，其中比较常见的命令有</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">virsh start    VM_ID  # 启动虚拟机</span><br><span class="line">      shutdown VM_ID  # 关闭虚拟机</span><br><span class="line">      destroy  VM_ID  # 强制关闭虚拟机</span><br><span class="line">      edit     VM_ID  # 更改虚拟机的配置</span><br></pre></td></tr></table></figure>
+<p>另外一个值得一提的功能是在线迁移（live migration）。</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">virsh migrate  VM_ID  DEST_URI --live</span><br></pre></td></tr></table></figure>
+<p>需要注意，在线迁移需要对方 QEMU 支持，最好在两个相同版本的 QEMU 服务器之间迁移，否则容易出错。其中 DEST_URI 的写法是 qemu+ssh://IP_ADDR/system ，详细文档见 <code>virsh migrate --help</code>。</p>
+<h3 id="常见问题"><a class="anchor" href="#常见问题">#</a>常见问题</h3>
+<ol>
+<li>
+<p>error: internal error Attempt to migrate guest to the same host 00020003-0004-0005-0006-000700080009</p>
+<p>应该是服务器提供商的问题，重新生成一下 UUID ：</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sed -i <span class="string">"/#host_uuid/ahost_uuid = \"`uuidgen`\""</span> /etc/libvirt/libvirtd.conf</span><br></pre></td></tr></table></figure>
+<p>然后重启 libvirtd 服务：</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">service libvirt-bin restart</span><br></pre></td></tr></table></figure>
+</li>
+<li>
+<p>error: internal error: process exited while connecting to monitor: qemu-system-x86_64: -machine pc-i440fx-2.2,accel=kvm,usb=off: Unsupported machine type</p>
+<p>这个错误在动态迁移（在线迁移，live migration）的时候会遇到，接收方的 QEMU 版本较低，不支持该版本的虚拟机。</p>
+</li>
+<li>
+<p>Cannot recv data: Value too large for defined data type</p>
+<p>很可能是因为调用的某个程序、某个库出现错误了，因为这个错误很广泛。我当时遇到这个问题是因为 ssh 的钥匙没配置好。建议重新生成秘钥。</p>
+</li>
+</ol>
+</div><div class="post-meta">由 <span class="author"><a href="mailto: yfwz100@yeah.net">Zhi</a></span> 写于 <span class="date">2016年10月30日</span> ·<span class="tags"><a class="tag" href="/tags/云计算/">云计算</a><a class="tag" href="/tags/虚拟化/">虚拟化</a></span></div><div class="cloud-tie-wrapper" id="cloud-tie-wrapper"></div><script type="text/javascript" src="https://img1.cache.netease.com/f2e/tie/yun/sdk/loader.js"></script><script type="text/javascript">var cloudTieConfig = {
+  url: document.location.href, 
+  sourceId: "",
+  productKey: "2311812cfc39469b8c071ba8f99d562e",
+  target: "cloud-tie-wrapper"
+};
+var yunManualLoad = true;
+Tie.loader("aHR0cHM6Ly9hcGkuZ2VudGllLjE2My5jb20vcGMvbGl2ZXNjcmlwdC5odG1s", true);</script><script type="text/javascript" src="https://img1.cache.netease.com/f2e/tie/yun/sdk/loader.js"></script></div></div><footer><div class="page"><address class="author">&copy; Zhi</address><div class="hexo-powered">博客由 <a href="http://www.hexo.io" target="_blank" rel="noopener">Hexo</a> 驱动</div><div class="rss"><a class="fa fa-rss-square" href="/atom.xml"></a></div></div></footer></body></html>

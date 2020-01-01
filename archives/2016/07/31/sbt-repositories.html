@@ -1,0 +1,37 @@
+<!DOCTYPE html><html><head><meta charset="utf-8"><title>植的博客</title><meta name="viewport" content="width=device-width, initial-scale=1"><link rel="stylesheet" href="//cdn.bootcss.com/font-awesome/4.6.3/css/font-awesome.min.css">
+<link rel="stylesheet" href="/css/base.css">
+<script type="text/x-mathjax-config">MathJax.Hub.Config({
+  tex2jax: {
+    inlineMath: [['$','$'], ['\\(','\\)']],
+    displayMath: [['$$', '$$'], ['\\[','\\]']],
+    processEscapes: true,
+    processEnvironments: true,
+    skipTags: ['script', 'noscript', 'style', 'textarea', 'pre','code'],
+    TeX: { equationNumbers: { autoNumber: "AMS" },
+         extensions: ["AMSmath.js", "AMSsymbols.js"] }
+  }
+});</script><script src="//cdn.bootcss.com/mathjax/2.6.1/MathJax.js?config=default"></script><script type="text/javascript">(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?ad6863b0ceb3ebc04afed41dc020bd78";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();</script><meta name="generator" content="Hexo 4.2.0"><link rel="alternate" href="/atom.xml" title="植的博客" type="application/atom+xml">
+</head><body><header><div class="page"><nav><ul class="brand"><li><a href="/">植的博客</a></li></ul><ul class="blog"><!-- List other items on menu.--><li class="menu-item"><a class="on" href="/archives">存档</a></li><li class="menu-item"><a href="/tags">标签</a></li><li class="menu-item"><a href="https://sanduck.github.io/about/" target="_blank" rel="noopener">梦</a></li></ul><ul class="social"><li><a class="fa fa-${name}" href="https://github.com/yfwz100" target="_blank" rel="noopener"><i class="sr-only">github</i></a></li><li><a class="fa fa-${name}" href="http://git.oschina.net/zhi" target="_blank" rel="noopener"><i class="sr-only">git</i></a></li><li><a class="fa fa-${name}" href="http://weibo.com/yfwz100" target="_blank" rel="noopener"><i class="sr-only">weibo</i></a></li></ul></nav></div></header><div class="post wrap"><div class="page"><div class="post-heading"><h1>Scala 的构建工具 SBT 镜像设置</h1></div><div class="post-body"><p>SBT 使用内置的 Ivy 来解释软件库的依赖关系，虽然因为 Ivy 支持 Maven 而支持 Maven。但和 Gradle 之类的构建工具不同， SBT 并不能继承 Maven 的设置。因此，针对 SBT 的镜像要重新设置。</p>
+<a id="more"></a>
+<p>而 SBT 的软件库镜像相对 Maven 的设置来说简单很多，只需要编辑 <code>~/.sbt/repositories</code> 文件，加入</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">[repositories]</span><br><span class="line">  local</span><br><span class="line">  aliyun: http:&#x2F;&#x2F;maven.aliyun.com&#x2F;nexus&#x2F;content&#x2F;groups&#x2F;public&#x2F;</span><br><span class="line">  central: http:&#x2F;&#x2F;repo1.maven.org&#x2F;maven2&#x2F;</span><br><span class="line">  typesafe: http:&#x2F;&#x2F;repo.typesafe.com&#x2F;typesafe&#x2F;ivy-releases&#x2F;, [organization]&#x2F;[module]&#x2F;[revision]&#x2F;[type]s&#x2F;[artifact](-[classifier]).[ext], bootOnly</span><br></pre></td></tr></table></figure>
+<p>以上配置文件解释顺序是：本地→阿里云镜像→Maven主镜像。如果需要添加公司的 maven 镜像，可以按照 key: value 的形式添加，key 的命名没有要求（暂时没注意到，但是最好也不要用什么特殊符号吧 😂）。同时，安利一下<a href="http://maven.aliyun.com" target="_blank" rel="noopener">阿里云的 Maven 镜像</a>，国内访问很快。</p>
+<blockquote>
+<p>2016年9月27日更新：</p>
+<p>在 <code>repositories</code> 文件中应该至少加入如下仓库：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">typesafe: http:&#x2F;&#x2F;repo.typesafe.com&#x2F;typesafe&#x2F;ivy-releases&#x2F;, [organization]&#x2F;[module]&#x2F;[revision]&#x2F;[type]s&#x2F;[artifact](-[classifier]).[ext], bootOnly</span><br></pre></td></tr></table></figure>
+<p>国内的镜像貌似都没有把 sbt 的新版本包括进去。因此，如果公司内网不能访问，则需要通过 Proxifier 等全局代理工具至少把 sbt 下载下来，然后其他的依赖关系通过国内镜像也可以顺利地下载了。</p>
+</blockquote>
+</div><div class="post-meta">由 <span class="author"><a href="mailto: yfwz100@yeah.net">Zhi</a></span> 写于 <span class="date">2016年7月31日</span> ·<span class="tags"><a class="tag" href="/tags/开发工具/">开发工具</a></span></div><div class="cloud-tie-wrapper" id="cloud-tie-wrapper"></div><script type="text/javascript" src="https://img1.cache.netease.com/f2e/tie/yun/sdk/loader.js"></script><script type="text/javascript">var cloudTieConfig = {
+  url: document.location.href, 
+  sourceId: "",
+  productKey: "2311812cfc39469b8c071ba8f99d562e",
+  target: "cloud-tie-wrapper"
+};
+var yunManualLoad = true;
+Tie.loader("aHR0cHM6Ly9hcGkuZ2VudGllLjE2My5jb20vcGMvbGl2ZXNjcmlwdC5odG1s", true);</script><script type="text/javascript" src="https://img1.cache.netease.com/f2e/tie/yun/sdk/loader.js"></script></div></div><footer><div class="page"><address class="author">&copy; Zhi</address><div class="hexo-powered">博客由 <a href="http://www.hexo.io" target="_blank" rel="noopener">Hexo</a> 驱动</div><div class="rss"><a class="fa fa-rss-square" href="/atom.xml"></a></div></div></footer></body></html>

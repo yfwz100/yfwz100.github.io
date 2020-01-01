@@ -1,0 +1,45 @@
+<!DOCTYPE html><html><head><meta charset="utf-8"><title>植的博客</title><meta name="viewport" content="width=device-width, initial-scale=1"><link rel="stylesheet" href="//cdn.bootcss.com/font-awesome/4.6.3/css/font-awesome.min.css">
+<link rel="stylesheet" href="/css/base.css">
+<script type="text/x-mathjax-config">MathJax.Hub.Config({
+  tex2jax: {
+    inlineMath: [['$','$'], ['\\(','\\)']],
+    displayMath: [['$$', '$$'], ['\\[','\\]']],
+    processEscapes: true,
+    processEnvironments: true,
+    skipTags: ['script', 'noscript', 'style', 'textarea', 'pre','code'],
+    TeX: { equationNumbers: { autoNumber: "AMS" },
+         extensions: ["AMSmath.js", "AMSsymbols.js"] }
+  }
+});</script><script src="//cdn.bootcss.com/mathjax/2.6.1/MathJax.js?config=default"></script><script type="text/javascript">(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?ad6863b0ceb3ebc04afed41dc020bd78";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();</script><meta name="generator" content="Hexo 4.2.0"><link rel="alternate" href="/atom.xml" title="植的博客" type="application/atom+xml">
+</head><body><header><div class="page"><nav><ul class="brand"><li><a href="/">植的博客</a></li></ul><ul class="blog"><!-- List other items on menu.--><li class="menu-item"><a class="on" href="/archives">存档</a></li><li class="menu-item"><a href="/tags">标签</a></li><li class="menu-item"><a href="https://sanduck.github.io/about/" target="_blank" rel="noopener">梦</a></li></ul><ul class="social"><li><a class="fa fa-${name}" href="https://github.com/yfwz100" target="_blank" rel="noopener"><i class="sr-only">github</i></a></li><li><a class="fa fa-${name}" href="http://git.oschina.net/zhi" target="_blank" rel="noopener"><i class="sr-only">git</i></a></li><li><a class="fa fa-${name}" href="http://weibo.com/yfwz100" target="_blank" rel="noopener"><i class="sr-only">weibo</i></a></li></ul></nav></div></header><div class="post wrap"><div class="page"><div class="post-heading"><h1>记一次 Linux 权限故障</h1></div><div class="post-body"><p>想起今天的误操作还真的心有余悸，差点就要重新安装系统了。缘起想改变 <code>/data</code> 这个目录的所有者，结果手误运行了 <code>sudo chown zhi:zhi /</code> ，导致整个系统的权限都重置为当前用户 zhi ！这样会导致什么问题？看看这篇讨论： <a href="http://askubuntu.com/questions/452860/usr-bin-sudo-must-be-owned-by-uid-0-and-have-the-setuid-bit-set" target="_blank" rel="noopener">AskUbuntu: sudo 权限错误</a> ，会导致 <code>sudo</code> 命令无法执行、 SSH 服务器停止响应，无法安装软件，无法远程登录。糟糕的是，这台服务器还是一台远程主机，我无法直接重装系统或者进入“recovery mode”修复 root 权限。想着今天做的基础设施就要报废了，心里真不是滋味。</p>
+<a id="more"></a>
+<p>要解决这个问题，首先要从恢复最高管理员权限开始。由于现代 Linux 系统，例如 Ubuntu 系，都已经采用 <code>sudo</code> 方案并设置 root 密码为随机密码，直接 su 切换到 root 并不现实。而直接运行 <code>sudo</code> ，则会出现：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo: &#x2F;usr&#x2F;bin&#x2F;sudo must be owned by uid 0</span><br></pre></td></tr></table></figure>
+<p>这个错误，多半是由于手误把 <code>/usr</code> 目录或者子目录的权限改变导致的了。</p>
+<p>解决的思路很简单，就是把 <code>/usr/bin/sudo</code> 这个命令的权限复原。一种方法是进入 recovery mode，这种模式下，基本上可以随心所欲了，详情参见 <a href="http://askubuntu.com/questions/452860/usr-bin-sudo-must-be-owned-by-uid-0-and-have-the-setuid-bit-set" target="_blank" rel="noopener">AskUbuntu: sudo 权限错误</a> 。但是如果是远程主机，就没那么好办了。那么我们需要找到一些漏洞。而我这次是从 <code>/data</code> 这个共享的 NFS 目录开始的（幸亏 <strong>之前搭建 NFS 的时候没有设置权限</strong> ，否则可能无法挂载了）。</p>
+<p>由于 NFS 共享目录可以保留权限，使用 <strong>另一台机器</strong> 挂载这个 NFS 目录，并且执行：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ sudo cp -a &#x2F;usr&#x2F;bin&#x2F;sudo &#x2F;data</span><br><span class="line">$ sudo cp -a &#x2F;usr&#x2F;lib&#x2F;sudo&#x2F;* &#x2F;data</span><br></pre></td></tr></table></figure>
+<p>得到保留所有权限信息的 <code>sudo</code> 命令以及相关的库文件。</p>
+<p>然后在原来的主机上，执行：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ rm &#x2F;usr&#x2F;bin&#x2F;sudo</span><br><span class="line">$ mv &#x2F;usr&#x2F;lib&#x2F;sudo &#x2F;usr&#x2F;local&#x2F;lib&#x2F;sudo.bak</span><br><span class="line">$ ln -s &#x2F;data &#x2F;usr&#x2F;lib&#x2F;sudo</span><br></pre></td></tr></table></figure>
+<p>先删除 <code>/usr/bin/sudo</code> ，然后把 <code>/usr/lib</code> 目录用 <code>/data</code> 取代。由于运行 <code>sudo</code> 命令实际上会连接调用 <code>/usr/lib/sudo</code> 目录下的库，并且会检查库文件的权限，但是不检查 <code>/usr/lib/sudo</code> 目录的形式和权限，感觉这是个漏洞。但不管怎样，现在执行：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ &#x2F;data&#x2F;sudo</span><br></pre></td></tr></table></figure>
+<p>成功了！</p>
+<p>接下来就是一步步地利用 <code>/data/sudo</code> 命令恢复 <code>/usr/bin/sudo</code> 以及 <code>/usr/lib/sudo</code> 了：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ &#x2F;data&#x2F;sudo cp -a &#x2F;data&#x2F;sudo &#x2F;usr&#x2F;bin&#x2F;sudo</span><br><span class="line">$ &#x2F;data&#x2F;sudo chown -R root:root &#x2F;usr&#x2F;lib&#x2F;sudo.bak</span><br><span class="line">$ &#x2F;data&#x2F;sudo cp -a &#x2F;usr&#x2F;lib&#x2F;sudo.bak &#x2F;usr&#x2F;lib&#x2F;sudo</span><br></pre></td></tr></table></figure>
+<p>至此，<code>sudo</code> 命令恢复完毕。接下来就是对照着原来的 Ubuntu，把其余权限错误的目录恢复为原来的权限了。其中一个至关重要的权限：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ sudo chown -R root:root &#x2F;var&#x2F;run&#x2F;ssh*</span><br></pre></td></tr></table></figure>
+<p>恢复 SSH 服务，使得在断线后还可以重新连接（切记，因为网络状态不是谁都可以预料的 😓）。其余命令，参考 <a href="http://askubuntu.com/questions/265080/how-can-i-recover-from-chmod-r-a-wrx-command" target="_blank" rel="noopener">AskUbuntu: 恢复 /* 目录权限</a></p>
+</div><div class="post-meta">由 <span class="author"><a href="mailto: yfwz100@yeah.net">Zhi</a></span> 写于 <span class="date">2016年5月26日</span> ·<span class="tags"><a class="tag" href="/tags/Linux/">Linux</a></span></div><div class="cloud-tie-wrapper" id="cloud-tie-wrapper"></div><script type="text/javascript" src="https://img1.cache.netease.com/f2e/tie/yun/sdk/loader.js"></script><script type="text/javascript">var cloudTieConfig = {
+  url: document.location.href, 
+  sourceId: "",
+  productKey: "2311812cfc39469b8c071ba8f99d562e",
+  target: "cloud-tie-wrapper"
+};
+var yunManualLoad = true;
+Tie.loader("aHR0cHM6Ly9hcGkuZ2VudGllLjE2My5jb20vcGMvbGl2ZXNjcmlwdC5odG1s", true);</script><script type="text/javascript" src="https://img1.cache.netease.com/f2e/tie/yun/sdk/loader.js"></script></div></div><footer><div class="page"><address class="author">&copy; Zhi</address><div class="hexo-powered">博客由 <a href="http://www.hexo.io" target="_blank" rel="noopener">Hexo</a> 驱动</div><div class="rss"><a class="fa fa-rss-square" href="/atom.xml"></a></div></div></footer></body></html>

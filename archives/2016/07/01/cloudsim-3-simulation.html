@@ -1,0 +1,55 @@
+<!DOCTYPE html><html><head><meta charset="utf-8"><title>植的博客</title><meta name="viewport" content="width=device-width, initial-scale=1"><link rel="stylesheet" href="//cdn.bootcss.com/font-awesome/4.6.3/css/font-awesome.min.css">
+<link rel="stylesheet" href="/css/base.css">
+<script type="text/x-mathjax-config">MathJax.Hub.Config({
+  tex2jax: {
+    inlineMath: [['$','$'], ['\\(','\\)']],
+    displayMath: [['$$', '$$'], ['\\[','\\]']],
+    processEscapes: true,
+    processEnvironments: true,
+    skipTags: ['script', 'noscript', 'style', 'textarea', 'pre','code'],
+    TeX: { equationNumbers: { autoNumber: "AMS" },
+         extensions: ["AMSmath.js", "AMSsymbols.js"] }
+  }
+});</script><script src="//cdn.bootcss.com/mathjax/2.6.1/MathJax.js?config=default"></script><script type="text/javascript">(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?ad6863b0ceb3ebc04afed41dc020bd78";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();</script><meta name="generator" content="Hexo 4.2.0"><link rel="alternate" href="/atom.xml" title="植的博客" type="application/atom+xml">
+</head><body><header><div class="page"><nav><ul class="brand"><li><a href="/">植的博客</a></li></ul><ul class="blog"><!-- List other items on menu.--><li class="menu-item"><a class="on" href="/archives">存档</a></li><li class="menu-item"><a href="/tags">标签</a></li><li class="menu-item"><a href="https://sanduck.github.io/about/" target="_blank" rel="noopener">梦</a></li></ul><ul class="social"><li><a class="fa fa-${name}" href="https://github.com/yfwz100" target="_blank" rel="noopener"><i class="sr-only">github</i></a></li><li><a class="fa fa-${name}" href="http://git.oschina.net/zhi" target="_blank" rel="noopener"><i class="sr-only">git</i></a></li><li><a class="fa fa-${name}" href="http://weibo.com/yfwz100" target="_blank" rel="noopener"><i class="sr-only">weibo</i></a></li></ul></nav></div></header><div class="post wrap"><div class="page"><div class="post-heading"><h1>CloudSim 笔记（3）- 仿真过程</h1></div><div class="post-body"><p>CloudSim 的仿真过程是一个相对简单而又有些复杂的过程。简单的地方在于它是对离散事件处理系统的一种抽象，复杂在于这种抽象导致的异步事件处理，难以直接从代码中一目了然地掌控仿真的流程。为了便于描述，把 CloudSim 的模拟层次分为三层：第一层是基于 CloudSim、SimEntity、 SimEvent 构建的离散事件系统，第二层是在 SimEntity 基础上构建 Datacenter 并在 Datacenter 下构建云计算实体模拟系统，第三层是以云计算基础设施上构建的调度模拟系统。</p>
+<a id="more"></a>
+<h2 id="第一层：异步事件处理系统"><a class="anchor" href="#第一层：异步事件处理系统">#</a>第一层：异步事件处理系统</h2>
+<p>对于第一层，我把由 CloudSim、SimEntity、SimEvent 组成的系统为异步事件处理系统。这是由 CloudSim 类的工作原理所决定的。而主要的步骤有三个，控制了仿真的初始化、运行、结束：</p>
+<p>初始化：主要是创建两个实体 CloudSimShutdown 和 CloudInformationService ，添加到实体列表里。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">CloudSim.init()</span><br><span class="line">├── CloudSimShutdown [SimEntity]</span><br><span class="line">└── CloudInformationService [SimEntity]</span><br></pre></td></tr></table></figure>
+<p>运行：进行实体的仿真，其过程如下。其中的要点是，每个实体异步执行，并在 <code>run()</code> 方法里进行时钟的同步（让超时的等待，让未来得及运行的补充运行）；其是否同步的请求，是在 SimEntity 的 <code>run()</code> 方法和发出的 <code>SimEvent</code> 来决定的。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">CloudSim.startSimulation() [Wait until simulation shutdown]</span><br><span class="line">├── run()</span><br><span class="line">│   ├── &#x2F;&#x2F; loop of simulation</span><br><span class="line">│   │   ├── SimEntity#startEntity() for all</span><br><span class="line">│   │   ├── CloudSim.runClockTick(): break the loop if no future events</span><br><span class="line">│   │   │   ├── SimEntity#run() for all if SimEntity#running</span><br><span class="line">│   │   │   └── CloudSim.processEvent(SimEvent) while SimEvents at the same time</span><br><span class="line">│   │   │       ├── set clock to SimEvent#eventTime()</span><br><span class="line">│   │   │       └── create&#x2F;send&#x2F;hold_done</span><br><span class="line">│   │   └── &#x2F;&#x2F; procedure to terminate at a specific time</span><br><span class="line">│   ├── CloudSim.finishSimulation()</span><br><span class="line">│   └── CloudSim.runStop()</span><br><span class="line">└── &#x2F;&#x2F; reset in order to restart</span><br></pre></td></tr></table></figure>
+<p>结束：结束分为两种情况，如果没有未来的时间，那么 CloudSim 将进入收尾阶段；如果手动终止（abruptTerminate 为真）则直接终止。调用图：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">CloudSim.finishSimulation()</span><br><span class="line">├── abruptTerminate?</span><br><span class="line">│   └── SimEntity#run() for all until SimEntity#getState() &#x3D;&#x3D; FINISHED</span><br><span class="line">├── SimEntity#shutdown() for all</span><br><span class="line">└── set all parameters to null.</span><br></pre></td></tr></table></figure>
+<p>这个过程里，已知的仿真实体有 CloudSimShutdown 和 CloudInformationService ，两者的 <code>run()</code> 和 <code>startEntity()</code> 基本上什么都没做。而 CloudInformationService 则通知所有 datacenter 关闭（发送关闭信息号）。实际上，在 datacenter 和 datacenterbroker 默认都不处理这个事件。 <code>run()</code> 方法的默认内容是调用自身的 <code>processEvent()</code> 来处理事件。</p>
+<h2 id="第二层：云基础设施"><a class="anchor" href="#第二层：云基础设施">#</a>第二层：云基础设施</h2>
+<p>对于所归纳的第二层，即云计算实体的模拟系统，实际上就是在前些天发布的文章的实验部分。在我们自己进行云计算资源调度实验的时候，最容易关注的是这一部分，即进行资源实体的定义，然后在主循环里，资源实体根据自身的特性，例如实体机调动虚拟机进行 cloudlet 的处理，cloudlet 自身根据负载模型的定义顺序执行，在经过一定周期以后，随着 cloudlet 执行结束，整个仿真流程结束。在这个过程中，手机 cloudlet 的执行数据，例如负载的变化历史、负载的等待时间、负载的执行时间、负载的完成时间、负载完成的周期、同时运行的负载的数量。即：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">Datacenter [SimEntity]</span><br><span class="line">├── DatacenterBroker [SimEntity]</span><br><span class="line">│   ├── CloudSim.addEntity(~)</span><br><span class="line">│   ├── &#x2F;&#x2F; submit VM requests</span><br><span class="line">│   └── &#x2F;&#x2F; submit cloudlet requests</span><br><span class="line">└── CloudSim.addEntity(~)</span><br></pre></td></tr></table></figure>
+<p>这个过程实际上是所说的第三层调度的编写执行，而其中涉及的实体，则是第二层抽象所关注的内容。这里的 <code>Datacenter</code> 和 <code>DatacenterBroker</code> 继承于 <code>SimEntity</code> ，接着 CloudSim 的运行流程进行其他实体的仿真。这个过程主要是由 Datacenter 和 DatacenterBroker 来带动。其中 DatacenterBroker 和 Datacenter 都没有覆盖 <code>run()</code> 方法，而是通过覆盖 <code>processEvent()</code> 来构建自身的方法：Datacenter 负责接受 DatacenterBroker 提交的虚拟机、cloudlet 的分配和调度工作，而 DatacenterBroker 则处理用户负载队列的问题。</p>
+<p>在 Datacenter 这一层的模拟上，主要是根据事件的接收和发送来维持运转。由于是事件驱动的异步系统，因此根据某一条执行线来描述：</p>
+<ul>
+<li>初始化阶段：Datacenter 和 DatacenterBroker 之间会来回传送一些参数，用于感知对方</li>
+<li>运行阶段：DatacenterBroker 会把 cloudlet 通过 CloudSim 底层的事件传递机制提交给 Datacenter 处理
+<ul>
+<li>Datacenter 通过设定的 VmAllocationPolicy 分配 VM 给 cloudlet</li>
+<li>VM 通过设定的 CloudletScheduler 调度 cloudlet，估计完成执行的时间并延迟发送 VM_DATACENTER_EVENT</li>
+</ul>
+</li>
+<li>结束阶段：当所有事件完成后，调用 CloudSim 的结束清理方法</li>
+</ul>
+<p>在 CloudSim 里，它的仿真过程实际上是快进的。与其根据执行时钟的周期一步步来，CloudSim 内部通过消息的传递接收为根据，在一段很长的时间里，如果只有个别几个变化的事件，CloudSim 会选择按照事件来处理，跳过中途的时间。这样的好处是执行的时间大大减小了；而坏处是，如果控制不当，或者考虑上的失误，仿真的结果很可能和现实相距甚远。</p>
+<h2 id="第三层：应用和实验"><a class="anchor" href="#第三层：应用和实验">#</a>第三层：应用和实验</h2>
+<p>第三层是建立于第二层云计算基础设施上的应用层，在之前的文章中粗略介绍过用法。至于怎么构建一个合理的实验，主要取决于作者为了云计算的某一种评估目标而建立的分析模型。这里没有特别的章法，CloudSim 的作者预留了足够的想象空间。但是，需要注意的是，在 CloudSim 里，像算法调度过程产生的周期消耗、量度算法执行的时间都是依靠分析模型进行时间的仿真模拟。在实际设计仿真实验的时候，要注意到 CloudSim 不仅仅是一个单纯的仿真平台，也是一个带有一定假设的分析仿真模型。合理的分析假设，在 CloudSim 上才能得到合理的结果。</p>
+</div><div class="post-meta">由 <span class="author"><a href="mailto: yfwz100@yeah.net">Zhi</a></span> 写于 <span class="date">2016年7月1日</span> ·<span class="tags"><a class="tag" href="/tags/云计算/">云计算</a><a class="tag" href="/tags/服务评估/">服务评估</a></span></div><div class="cloud-tie-wrapper" id="cloud-tie-wrapper"></div><script type="text/javascript" src="https://img1.cache.netease.com/f2e/tie/yun/sdk/loader.js"></script><script type="text/javascript">var cloudTieConfig = {
+  url: document.location.href, 
+  sourceId: "",
+  productKey: "2311812cfc39469b8c071ba8f99d562e",
+  target: "cloud-tie-wrapper"
+};
+var yunManualLoad = true;
+Tie.loader("aHR0cHM6Ly9hcGkuZ2VudGllLjE2My5jb20vcGMvbGl2ZXNjcmlwdC5odG1s", true);</script><script type="text/javascript" src="https://img1.cache.netease.com/f2e/tie/yun/sdk/loader.js"></script></div></div><footer><div class="page"><address class="author">&copy; Zhi</address><div class="hexo-powered">博客由 <a href="http://www.hexo.io" target="_blank" rel="noopener">Hexo</a> 驱动</div><div class="rss"><a class="fa fa-rss-square" href="/atom.xml"></a></div></div></footer></body></html>

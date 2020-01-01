@@ -1,0 +1,61 @@
+<!DOCTYPE html><html><head><meta charset="utf-8"><title>植的博客</title><meta name="viewport" content="width=device-width, initial-scale=1"><link rel="stylesheet" href="//cdn.bootcss.com/font-awesome/4.6.3/css/font-awesome.min.css">
+<link rel="stylesheet" href="/css/base.css">
+<script type="text/x-mathjax-config">MathJax.Hub.Config({
+  tex2jax: {
+    inlineMath: [['$','$'], ['\\(','\\)']],
+    displayMath: [['$$', '$$'], ['\\[','\\]']],
+    processEscapes: true,
+    processEnvironments: true,
+    skipTags: ['script', 'noscript', 'style', 'textarea', 'pre','code'],
+    TeX: { equationNumbers: { autoNumber: "AMS" },
+         extensions: ["AMSmath.js", "AMSsymbols.js"] }
+  }
+});</script><script src="//cdn.bootcss.com/mathjax/2.6.1/MathJax.js?config=default"></script><script type="text/javascript">(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?ad6863b0ceb3ebc04afed41dc020bd78";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();</script><meta name="generator" content="Hexo 4.2.0"><link rel="alternate" href="/atom.xml" title="植的博客" type="application/atom+xml">
+</head><body><header><div class="page"><nav><ul class="brand"><li><a href="/">植的博客</a></li></ul><ul class="blog"><!-- List other items on menu.--><li class="menu-item"><a class="on" href="/archives">存档</a></li><li class="menu-item"><a href="/tags">标签</a></li><li class="menu-item"><a href="https://sanduck.github.io/about/" target="_blank" rel="noopener">梦</a></li></ul><ul class="social"><li><a class="fa fa-${name}" href="https://github.com/yfwz100" target="_blank" rel="noopener"><i class="sr-only">github</i></a></li><li><a class="fa fa-${name}" href="http://git.oschina.net/zhi" target="_blank" rel="noopener"><i class="sr-only">git</i></a></li><li><a class="fa fa-${name}" href="http://weibo.com/yfwz100" target="_blank" rel="noopener"><i class="sr-only">weibo</i></a></li></ul></nav></div></header><div class="post wrap"><div class="page"><div class="post-heading"><h1>某公司笔试题目</h1></div><div class="post-body"><p>难度：★★★★</p>
+<p>不得不说某公司真低调，这样就不说是什么公司了。笔试的形式很简单，两道题，在 3 天内完成其中的一道。于是也就分享其中一道吧……</p>
+<h1>第一道题：最大价值链</h1>
+<p>这道题使我想起了以前在 POJ 里做过的一道题。给定一个迷宫（矩阵），负值代表墙，从右下角开始，累加走过的路（不可回头），直到走到最右边（或者右上角）。并且，这个题还有一个『传送』功能，当向下穿越到上面的时候，当前结果清零，以下一步的方案计算收益。</p>
+<p>这道题一看就是动态规划的思想，但是怎么个动态规划法，还是值得商量的。一开始开错题。由于不可以向左走，所以往右走就是自由的。但是如果往上走或者往下走，下一步就不能是上一个动作的相反方向了。</p>
+<p>既然是动态规划，那么我们就考虑一下状态方程吧…… 设当前坐标为 $(x, y)$ 、方向为 $d$。那么递推方程就是：</p>
+<p>$$ F(x,y,d)= \begin{cases}<br>
+M_{(x,y)}+\max{ F(i+1,j,0), F(i, j-1,1), F(i,j+1,2) },  &amp; d=0 \<br>
+M_{(x,y)}+\max{ F(i+1,j,0), F(i,j-1,1) }, &amp; d=1 \<br>
+M_{(x,y)}\max{ F(i+1,j,0), F(i,j+1,2) },  &amp; d=2<br>
+\end{cases} $$</p>
+<p>并且，</p>
+<p>$$ d = \begin{cases} 0, \text{from right} \ 1, \text{from up} \ 2, \text{from down} \end{cases} $$</p>
+<p>好像有什么不对——还没有考虑边界的情况（穿越），如果考虑穿越，而且不能走重复的路，那么情况就复杂很多了。</p>
+<p>那么我们再定义三个执行条件：</p>
+<ol>
+<li>如果没有路了，即遇到的方块 $M_{(x,y)}=-1$ ：
+<ol>
+<li>如果在边界，返回 0 ；</li>
+<li>如果不在边界，返回 -1 （死胡同）；</li>
+</ol>
+</li>
+<li>否则，
+<ol>
+<li>如果不在边界，尝试向上、下、右的顺序，按照上述状态方程找路；</li>
+<li>如果当前是边界，并且上一步没找到路线，则设置此刻最大的价值是自身；</li>
+<li>如果在边界，尝试穿越，并与上一步获得的值对比，取最大值。</li>
+</ol>
+</li>
+</ol>
+<p>如果考虑上 $(x,y)$ 的穿越问题，那么就困难很多了。另外，穿越以后，还可能出现走重复的路的可能。这样就会导致死循环。因此，这里要考虑的不仅仅是最大价值，还有非重复路线，即维护一个走过路线的集合。</p>
+<p>写了近一晚才勉强跑出来，Java 和 C++ 的非多值返回算法，使得这份代码传递了很多『输出参数』，调试很不容易……做完都不知道有没有漏掉情况。</p>
+<h1>小结</h1>
+<p>总的来说，这次笔试题很考算法的基础知识、对细节的捕捉和缜密的逻辑，这道题初看就是 Medium 类型的，但是实际上难度系数还是很高的。</p>
+<p>再感叹一下，这家公司真的很低调。</p>
+</div><div class="post-meta">由 <span class="author"><a href="mailto: yfwz100@yeah.net">Zhi</a></span> 写于 <span class="date">2016年3月25日</span> ·<span class="tags"><a class="tag" href="/tags/笔试/">笔试</a><a class="tag" href="/tags/OJ/">OJ</a></span></div><div class="cloud-tie-wrapper" id="cloud-tie-wrapper"></div><script type="text/javascript" src="https://img1.cache.netease.com/f2e/tie/yun/sdk/loader.js"></script><script type="text/javascript">var cloudTieConfig = {
+  url: document.location.href, 
+  sourceId: "",
+  productKey: "2311812cfc39469b8c071ba8f99d562e",
+  target: "cloud-tie-wrapper"
+};
+var yunManualLoad = true;
+Tie.loader("aHR0cHM6Ly9hcGkuZ2VudGllLjE2My5jb20vcGMvbGl2ZXNjcmlwdC5odG1s", true);</script><script type="text/javascript" src="https://img1.cache.netease.com/f2e/tie/yun/sdk/loader.js"></script></div></div><footer><div class="page"><address class="author">&copy; Zhi</address><div class="hexo-powered">博客由 <a href="http://www.hexo.io" target="_blank" rel="noopener">Hexo</a> 驱动</div><div class="rss"><a class="fa fa-rss-square" href="/atom.xml"></a></div></div></footer></body></html>

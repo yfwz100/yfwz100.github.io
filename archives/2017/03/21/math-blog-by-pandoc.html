@@ -1,0 +1,43 @@
+<!DOCTYPE html><html><head><meta charset="utf-8"><title>植的博客</title><meta name="viewport" content="width=device-width, initial-scale=1"><link rel="stylesheet" href="//cdn.bootcss.com/font-awesome/4.6.3/css/font-awesome.min.css">
+<link rel="stylesheet" href="/css/base.css">
+<script type="text/x-mathjax-config">MathJax.Hub.Config({
+  tex2jax: {
+    inlineMath: [['$','$'], ['\\(','\\)']],
+    displayMath: [['$$', '$$'], ['\\[','\\]']],
+    processEscapes: true,
+    processEnvironments: true,
+    skipTags: ['script', 'noscript', 'style', 'textarea', 'pre','code'],
+    TeX: { equationNumbers: { autoNumber: "AMS" },
+         extensions: ["AMSmath.js", "AMSsymbols.js"] }
+  }
+});</script><script src="//cdn.bootcss.com/mathjax/2.6.1/MathJax.js?config=default"></script><script type="text/javascript">(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?ad6863b0ceb3ebc04afed41dc020bd78";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();</script><meta name="generator" content="Hexo 4.2.0"><link rel="alternate" href="/atom.xml" title="植的博客" type="application/atom+xml">
+</head><body><header><div class="page"><nav><ul class="brand"><li><a href="/">植的博客</a></li></ul><ul class="blog"><!-- List other items on menu.--><li class="menu-item"><a class="on" href="/archives">存档</a></li><li class="menu-item"><a href="/tags">标签</a></li><li class="menu-item"><a href="https://sanduck.github.io/about/" target="_blank" rel="noopener">梦</a></li></ul><ul class="social"><li><a class="fa fa-${name}" href="https://github.com/yfwz100" target="_blank" rel="noopener"><i class="sr-only">github</i></a></li><li><a class="fa fa-${name}" href="http://git.oschina.net/zhi" target="_blank" rel="noopener"><i class="sr-only">git</i></a></li><li><a class="fa fa-${name}" href="http://weibo.com/yfwz100" target="_blank" rel="noopener"><i class="sr-only">weibo</i></a></li></ul></nav></div></header><div class="post wrap"><div class="page"><div class="post-heading"><h1>基于 Hexo 打造一个数学博客</h1></div><div class="post-body"><p>在 Hexo 博客引擎折腾了一下午数学公式显示。试了几个 Hexo 插件，效果都不是很理想。目前 Hexo 支持 Markdown 写博客，配合 <a href="http://typora.io" target="_blank" rel="noopener" title="A Markdown Editor">Typora</a> 写博客不错，也不用担心格式问题。不过，在 Markdown 写数学公式是一个问题。存在的解决方法是以 $…$ 为区域渲染 Latex 公式，但这种转换方式目前有存在一些问题。</p>
+<a id="more"></a>
+<p>一般来说，Hexo 的数学公式插件有两种处理方法：</p>
+<ol>
+<li>先把 $…$ 处理为 HTML 然后处理 Markdown；</li>
+<li>先处理 Markdown 然后再处理 $…$。</li>
+</ol>
+<p>前者一般是 plugin，后者一般就是主题搭配 MathJax 或 Katex 了。但 Markdown 格式和 Latex 公式之间存在冲突：</p>
+<ol>
+<li>“_”（下划线）在 Markdown 里会被转义为斜体；</li>
+<li>“*”（星号）在 Markdown 里被转义为粗体；</li>
+<li>“\”（反斜杠）在 Markdown 里被转义为“\”。</li>
+</ol>
+<p>于是，有些主题带的 MathJax 和 Katex 都无法使用了，书写复杂公式以后会被默认的 Markdown 引擎渲染转义掉。之前写的很多 Markdown 文档其实都没考虑这个问题，包括 <a href="http://typora.io" target="_blank" rel="noopener" title="A Markdown Editor">Typora</a> 生成的 Markdown 文档也没有对 Markdown 里的格式进行特殊处理。于是，很多引擎识别不正常。然后，就把默认的 Markdown 引擎改为 Pandoc 了，配合 MathJax 一切正常。在 package.json 里，把</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">    <span class="attr">"dependencies"</span>: &#123;</span><br><span class="line">        <span class="attr">"hexo-renderer-marked"</span>: <span class="string">"*"</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>中的 <code>hexo-renderer-marked</code> 改为 <code>hexo-renderer-pandoc</code> 即可。</p>
+<p>另外，Katex 对 Latex 公式支持不全，暂时建议不要使用。</p>
+</div><div class="post-meta">由 <span class="author"><a href="mailto: yfwz100@yeah.net">Zhi</a></span> 写于 <span class="date">2017年3月21日</span> ·<span class="tags"></span></div><div class="cloud-tie-wrapper" id="cloud-tie-wrapper"></div><script type="text/javascript" src="https://img1.cache.netease.com/f2e/tie/yun/sdk/loader.js"></script><script type="text/javascript">var cloudTieConfig = {
+  url: document.location.href, 
+  sourceId: "",
+  productKey: "2311812cfc39469b8c071ba8f99d562e",
+  target: "cloud-tie-wrapper"
+};
+var yunManualLoad = true;
+Tie.loader("aHR0cHM6Ly9hcGkuZ2VudGllLjE2My5jb20vcGMvbGl2ZXNjcmlwdC5odG1s", true);</script><script type="text/javascript" src="https://img1.cache.netease.com/f2e/tie/yun/sdk/loader.js"></script></div></div><footer><div class="page"><address class="author">&copy; Zhi</address><div class="hexo-powered">博客由 <a href="http://www.hexo.io" target="_blank" rel="noopener">Hexo</a> 驱动</div><div class="rss"><a class="fa fa-rss-square" href="/atom.xml"></a></div></div></footer></body></html>

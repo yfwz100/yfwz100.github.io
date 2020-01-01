@@ -1,0 +1,103 @@
+<!DOCTYPE html><html><head><meta charset="utf-8"><title>植的博客</title><meta name="viewport" content="width=device-width, initial-scale=1"><link rel="stylesheet" href="//cdn.bootcss.com/font-awesome/4.6.3/css/font-awesome.min.css">
+<link rel="stylesheet" href="/css/base.css">
+<script type="text/x-mathjax-config">MathJax.Hub.Config({
+  tex2jax: {
+    inlineMath: [['$','$'], ['\\(','\\)']],
+    displayMath: [['$$', '$$'], ['\\[','\\]']],
+    processEscapes: true,
+    processEnvironments: true,
+    skipTags: ['script', 'noscript', 'style', 'textarea', 'pre','code'],
+    TeX: { equationNumbers: { autoNumber: "AMS" },
+         extensions: ["AMSmath.js", "AMSsymbols.js"] }
+  }
+});</script><script src="//cdn.bootcss.com/mathjax/2.6.1/MathJax.js?config=default"></script><script type="text/javascript">(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?ad6863b0ceb3ebc04afed41dc020bd78";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();</script><meta name="generator" content="Hexo 4.2.0"><link rel="alternate" href="/atom.xml" title="植的博客" type="application/atom+xml">
+</head><body><header><div class="page"><nav><ul class="brand"><li><a href="/">植的博客</a></li></ul><ul class="blog"><!-- List other items on menu.--><li class="menu-item"><a class="on" href="/archives">存档</a></li><li class="menu-item"><a href="/tags">标签</a></li><li class="menu-item"><a href="https://sanduck.github.io/about/" target="_blank" rel="noopener">梦</a></li></ul><ul class="social"><li><a class="fa fa-${name}" href="https://github.com/yfwz100" target="_blank" rel="noopener"><i class="sr-only">github</i></a></li><li><a class="fa fa-${name}" href="http://git.oschina.net/zhi" target="_blank" rel="noopener"><i class="sr-only">git</i></a></li><li><a class="fa fa-${name}" href="http://weibo.com/yfwz100" target="_blank" rel="noopener"><i class="sr-only">weibo</i></a></li></ul></nav></div></header><div class="post wrap"><div class="page"><div class="post-heading"><h1>SVM 模型复习</h1></div><div class="post-body"><p>最近根据周志华的《机器学习》复习了一下 SVM 算法，SVM 确实称得上机器学习的代表算法之一，把涉及的概念整理一下。</p>
+<a id="more"></a>
+<p>首先，从一个二分类器说起。SVM 实际上解决的是一个线性的模型，也就是说，假定存在这么一个表达式：</p>
+<p>$$w^T x + b = 0$$</p>
+<p>能够把数据恰到好处地分割为两部分。即对于样本点 $(x_i, y_i)$ ，有如下不等式成立</p>
+<p>$$<br>
+\begin{cases}<br>
+w^T x_i + b \ge +1, &amp; y_i=+1; \<br>
+w^T x_i + b \le -1, &amp; y_i=-1;<br>
+\end{cases}<br>
+$$</p>
+<p>当上述不等式的等号成立的时候，那些样本点 $(x_i, y_i)$ 称为支持向量。而分割平面到支持向量之间的距离为</p>
+<p>$$<br>
+\gamma = \frac{2}{|| w||}<br>
+$$</p>
+<p>所谓的“恰到好处”指的是使 $\gamma$ 最大的时候。</p>
+<h2 id="损失函数"><a class="anchor" href="#损失函数">#</a>损失函数</h2>
+<p>在得到了 SVM 的定义以后，可以归纳出 SVM 的优化目标将会分为两部分，即满足最大化分类间隔，以及在这个目的下约束所有分类点都应该满足分类表达式：</p>
+<p>$$<br>
+\begin{align*}<br>
+&amp; \max_{w,b} \quad \frac{2}{||w||} \<br>
+&amp; \begin{array}{r@{\quad}r@{}@{\quad}} s.t. &amp;  y_i ( w^T x_i + b) \ge 1, &amp; i=1,2,3 \end{array} .<br>
+\end{align*}<br>
+$$</p>
+<p>上式是一个带约束的最优化问题，采用最优化理论的对偶解法。把优化式转换为</p>
+<p>$$<br>
+L(w,b,\alpha) = \frac{1}{2}||w||^2 + \sum_{i=1}^m \alpha_i (1 - y_i (w^T x_i + b))<br>
+$$</p>
+<p>即得到了 SVM 的<strong>损失函数</strong>。</p>
+<h3 id="软间隔以及正则化"><a class="anchor" href="#软间隔以及正则化">#</a>软间隔以及正则化</h3>
+<p>但是现实世界里可能没有那么完美的分类平面，噪声的存在使得这个世界不是非黑即白。为了解决噪声，我们要允许数据犯错，则优化目标转化为</p>
+<p>$$<br>
+\min_{w,b} \frac{1}{2}||w||^2 + C \sum_{i=1}^m \ell_{0/1}(y_i (w^T x_i + b) - 1)<br>
+$$</p>
+<p>其中</p>
+<p>$$<br>
+\ell_{0/1}(z) = \begin{cases} 1, &amp; \text{if} \quad z &gt; 0 \ 0, &amp; \text{otherwise.} \end{cases}<br>
+$$</p>
+<p>容易看出，当$C$ 趋近无穷大的时候，要求 $\mathcal{l}(z)=0$ 恒成立，否则将不能被优化，此时对犯错的风险降至 0 。反之， $C$ 越接近 0 则越容许分类器犯错。</p>
+<p>然而，$\ell_{0/1}(z)$ 是一个分段函数，意味着该函数不能直接求导，因此，有很多函数试图替代这个函数，例如：</p>
+<p>$$<br>
+\ell_{log}(z) = \log (1 + \exp(-z))<br>
+$$</p>
+<p>当把上式替代 $\ell_{0/1}(z)$ 后，那么损失函数变为</p>
+<p>$$<br>
+\begin{align*}<br>
+&amp; \frac{1}{2}||w||^2 + C \sum_{i=1}^m \log(1 + \exp(1 - y_i (w^T x_i + b))) \<br>
+\rightarrow \quad &amp; \sum_{i=1}^m \log(1 + \exp(1 - y_i (w^T x_i + b))) + C  \frac{1}{2}||w||^2<br>
+\end{align*}<br>
+$$</p>
+<p>看着是不是很像逻辑回归？比逻辑回归多的部分，就是多加了个 $w$ 项。在逻辑回归里，也可以做类似的优化，称为正则化项，依据就是当参数越少，泛化能力越好。当然，在 SVM 中，实际上就是软间隔的最大化了。由此，两个看起来不相关的模型在这里巧合地相互解释。</p>
+<h3 id="结构风险与经验风险"><a class="anchor" href="#结构风险与经验风险">#</a>结构风险与经验风险</h3>
+<p>从结构和经验两部分来看，把上述损失函数分拆，可以得到如下两部分：</p>
+<p>$$<br>
+\underbrace{\frac{1}{2} ||w||^2} _ {结构风险} + \overbrace{C \sum_{i=1}^m \ell(y_i(w^T x_i + b) - 1)}^{经验风险}<br>
+$$</p>
+<p>每一个机器学习的目标函数可能都会包括这两部分，即结构风险和经验风险。这两者在 SVM 上表现得尤为显著。其中，第一部分结构风险，就形象地表达了 SVM 模型的平面结构，它的最小化偏向使得分类平面向着支持向量间隔最大的方向发展。而经验风险在引入软间隔的时候就说明了，就是是否允许数据犯错，对数据噪声的容忍程度。换句话说，以多大的程度信任给定的数据。</p>
+<p>但是为什么说是风险呢？数据挖掘的场景下，原始数据是“肮脏”的，不真实的。数据有一些偶然和随机的成分，即使是今天所谓的大数据场景下，获得的数据也是不全面的。由于仪器的误差，有些数据可能存在一些噪声，使得不是该类的样本被测得在该类下，如果一味拟合过去的数据就会误导未来的预测。这就是所谓经验风险。另一方面，模型越复杂对数据的解释能力就越强，例如二次函数生成的数据可以被四次甚至更高次的模型解释，但是两者却不会再所有点上重合。显然，二次模型产生的点应该用二次模型来解读，模型过于复杂，反而出现所谓过度解读的问题，对未出现过的点解释错误。这就是所谓的结构风险。</p>
+<h2 id="核函数方法"><a class="anchor" href="#核函数方法">#</a>核函数方法</h2>
+<p>核函数是 SVM 中的一个重要优化手段，但其他分类器也可能实现核函数的优化。核方法说的是把样本的特征提升到一定的维度上，使得在当前维不可分的点在高维空间下可分。但是 SVM 中的核函数却不是指通过该函数提升到高维空间，而是算法实现上的一个细节。</p>
+<p>注意到损失函数中，</p>
+<p>$$<br>
+w = \sum_{i=1}^m \alpha_i y_i x_i^T<br>
+$$</p>
+<p>也就是说，求得的分类平面是</p>
+<p>$$<br>
+\sum_{i=1}^m \alpha_i y_i x_i^T x + b<br>
+$$</p>
+<p>如果通过函数 $\phi(x)$ 把 $x$ 提升到一个新的高维空间，那么，分类平面将变为</p>
+<p>$$<br>
+\sum_{i=1}^m \alpha_i y_i \phi(x_i)^T \phi(x) + b<br>
+$$</p>
+<p>实际上需要计算的是 $\phi(x_i)^T\phi(x)$ 而不是 $\phi(x)$，因此，核函数就是说</p>
+<p>$$<br>
+\kappa(x, y)=\phi(x)^T \phi(y)<br>
+$$</p>
+<p>的过程，而非把样本特征向量转换到高维的函数。</p>
+</div><div class="post-meta">由 <span class="author"><a href="mailto: yfwz100@yeah.net">Zhi</a></span> 写于 <span class="date">2017年3月12日</span> ·<span class="tags"><a class="tag" href="/tags/数据挖掘/">数据挖掘</a></span></div><div class="cloud-tie-wrapper" id="cloud-tie-wrapper"></div><script type="text/javascript" src="https://img1.cache.netease.com/f2e/tie/yun/sdk/loader.js"></script><script type="text/javascript">var cloudTieConfig = {
+  url: document.location.href, 
+  sourceId: "",
+  productKey: "2311812cfc39469b8c071ba8f99d562e",
+  target: "cloud-tie-wrapper"
+};
+var yunManualLoad = true;
+Tie.loader("aHR0cHM6Ly9hcGkuZ2VudGllLjE2My5jb20vcGMvbGl2ZXNjcmlwdC5odG1s", true);</script><script type="text/javascript" src="https://img1.cache.netease.com/f2e/tie/yun/sdk/loader.js"></script></div></div><footer><div class="page"><address class="author">&copy; Zhi</address><div class="hexo-powered">博客由 <a href="http://www.hexo.io" target="_blank" rel="noopener">Hexo</a> 驱动</div><div class="rss"><a class="fa fa-rss-square" href="/atom.xml"></a></div></div></footer></body></html>

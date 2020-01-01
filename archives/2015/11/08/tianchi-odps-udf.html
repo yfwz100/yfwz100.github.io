@@ -1,0 +1,41 @@
+<!DOCTYPE html><html><head><meta charset="utf-8"><title>植的博客</title><meta name="viewport" content="width=device-width, initial-scale=1"><link rel="stylesheet" href="//cdn.bootcss.com/font-awesome/4.6.3/css/font-awesome.min.css">
+<link rel="stylesheet" href="/css/base.css">
+<script type="text/x-mathjax-config">MathJax.Hub.Config({
+  tex2jax: {
+    inlineMath: [['$','$'], ['\\(','\\)']],
+    displayMath: [['$$', '$$'], ['\\[','\\]']],
+    processEscapes: true,
+    processEnvironments: true,
+    skipTags: ['script', 'noscript', 'style', 'textarea', 'pre','code'],
+    TeX: { equationNumbers: { autoNumber: "AMS" },
+         extensions: ["AMSmath.js", "AMSsymbols.js"] }
+  }
+});</script><script src="//cdn.bootcss.com/mathjax/2.6.1/MathJax.js?config=default"></script><script type="text/javascript">(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?ad6863b0ceb3ebc04afed41dc020bd78";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();</script><meta name="generator" content="Hexo 4.2.0"><link rel="alternate" href="/atom.xml" title="植的博客" type="application/atom+xml">
+</head><body><header><div class="page"><nav><ul class="brand"><li><a href="/">植的博客</a></li></ul><ul class="blog"><!-- List other items on menu.--><li class="menu-item"><a class="on" href="/archives">存档</a></li><li class="menu-item"><a href="/tags">标签</a></li><li class="menu-item"><a href="https://sanduck.github.io/about/" target="_blank" rel="noopener">梦</a></li></ul><ul class="social"><li><a class="fa fa-${name}" href="https://github.com/yfwz100" target="_blank" rel="noopener"><i class="sr-only">github</i></a></li><li><a class="fa fa-${name}" href="http://git.oschina.net/zhi" target="_blank" rel="noopener"><i class="sr-only">git</i></a></li><li><a class="fa fa-${name}" href="http://weibo.com/yfwz100" target="_blank" rel="noopener"><i class="sr-only">weibo</i></a></li></ul></nav></div></header><div class="post wrap"><div class="page"><div class="post-heading"><h1>在 ODPS SQL 上使用自定义函数（UDF）</h1></div><div class="post-body"><p>穿衣搭配算法比赛终于要用UDF了，赶紧配置一个。发现官网上的介绍已经跟不上ODPS发展的步伐了，如果之前不是对Maven还有点了解，感觉配置一个UDF都不容易。几个相关的官网链接：<a href="https://docs.aliyun.com/?spm=0.0.0.0.3cuHAi#/pub/odps/quick_start/udf" target="_blank" rel="noopener" title="UDF官方文档">编写UDF</a>、<a href="http://bbs.aliyun.com/read/240435.html?spm=5176.7189909.0.0.2k2cyc" target="_blank" rel="noopener" title="官方论坛">移动推荐算法参赛攻略</a>以及<a href="http://yushanfang.com/portal/help/doc.html?spm=0.0.0.0.HnJuqY&amp;file=MrUdfLocalDev" target="_blank" rel="noopener" title="官方文档">UDF/MR本地开发工具</a>（比较详细）。</p>
+<p>Alibaba ODPS 为 Eclipse 专门定制了插件，但事实上，ODPS UDF 是为 Maven 定制的，任何对Maven提供标准支持的IDE都可以正常用。我就比较习惯用IntelliJ，对Maven和Gradle支持都不错。</p>
+<p>ODPS 为 UDF 和 MapReduce 项目都提供了项目模板支持（就是官网的archetype，这个步骤实际上是建立一个UDF或者MapReduce的模板），在IntelliJ IDEA下，实际上直接输入官网提供的参数即可：</p>
+<p><img src="http://upload-images.jianshu.io/upload_images/78901-8b52eea17879ee9c.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="IntelliJ IDEA 配置 Maven Archetype"></p>
+<p>其中，</p>
+<pre><code>GroupId: com.alibaba.base
+ArtifactId: base-udf-archetype/base-mr-archetype
+Version:  1.0.0-SNAPSHOT
+Repository: http://maven.sdk.de.yushanfang.com/SNAPSHOT
+</code></pre>
+<p>然后，就可以根据生成的例子实现自己的UDF了（貌似就是继承 UDF 类，详情见文档）。</p>
+<p>和官网有点不一样的地方是，IntelliJ IDEA 不会提示你编写自己的项目信息，需要编辑 <code>main/resources/credential.properties</code> 和 <code>main/resources/META-INF/base.udf.xml</code> 。另外需要注意的是 idePath 的文件夹需要预先存在（官网给出的『workflow』需要改为『工作流』，否则文件夹不存在……）。</p>
+<p>根据官网提示，编辑 <code>.m2/settings.xml</code> 文件，一般在 $HOME 目录下。这个步骤是为了添加向 Maven 注册非官方插件（还不在 Maven 的官方仓库里）。</p>
+<p>最后，正常运行 Maven Goal 即可（在Maven面板），并填写相关参数（这个参数每个人都一样），如图：</p>
+<p><img src="http://upload-images.jianshu.io/upload_images/78901-fa5678976a26f383.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="运行Maven目标"></p>
+</div><div class="post-meta">由 <span class="author"><a href="mailto: yfwz100@yeah.net">Zhi</a></span> 写于 <span class="date">2015年11月8日</span> ·<span class="tags"><a class="tag" href="/tags/数据挖掘/">数据挖掘</a></span></div><div class="cloud-tie-wrapper" id="cloud-tie-wrapper"></div><script type="text/javascript" src="https://img1.cache.netease.com/f2e/tie/yun/sdk/loader.js"></script><script type="text/javascript">var cloudTieConfig = {
+  url: document.location.href, 
+  sourceId: "",
+  productKey: "2311812cfc39469b8c071ba8f99d562e",
+  target: "cloud-tie-wrapper"
+};
+var yunManualLoad = true;
+Tie.loader("aHR0cHM6Ly9hcGkuZ2VudGllLjE2My5jb20vcGMvbGl2ZXNjcmlwdC5odG1s", true);</script><script type="text/javascript" src="https://img1.cache.netease.com/f2e/tie/yun/sdk/loader.js"></script></div></div><footer><div class="page"><address class="author">&copy; Zhi</address><div class="hexo-powered">博客由 <a href="http://www.hexo.io" target="_blank" rel="noopener">Hexo</a> 驱动</div><div class="rss"><a class="fa fa-rss-square" href="/atom.xml"></a></div></div></footer></body></html>

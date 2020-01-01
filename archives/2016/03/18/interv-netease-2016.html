@@ -1,0 +1,43 @@
+<!DOCTYPE html><html><head><meta charset="utf-8"><title>植的博客</title><meta name="viewport" content="width=device-width, initial-scale=1"><link rel="stylesheet" href="//cdn.bootcss.com/font-awesome/4.6.3/css/font-awesome.min.css">
+<link rel="stylesheet" href="/css/base.css">
+<script type="text/x-mathjax-config">MathJax.Hub.Config({
+  tex2jax: {
+    inlineMath: [['$','$'], ['\\(','\\)']],
+    displayMath: [['$$', '$$'], ['\\[','\\]']],
+    processEscapes: true,
+    processEnvironments: true,
+    skipTags: ['script', 'noscript', 'style', 'textarea', 'pre','code'],
+    TeX: { equationNumbers: { autoNumber: "AMS" },
+         extensions: ["AMSmath.js", "AMSsymbols.js"] }
+  }
+});</script><script src="//cdn.bootcss.com/mathjax/2.6.1/MathJax.js?config=default"></script><script type="text/javascript">(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?ad6863b0ceb3ebc04afed41dc020bd78";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();</script><meta name="generator" content="Hexo 4.2.0"><link rel="alternate" href="/atom.xml" title="植的博客" type="application/atom+xml">
+</head><body><header><div class="page"><nav><ul class="brand"><li><a href="/">植的博客</a></li></ul><ul class="blog"><!-- List other items on menu.--><li class="menu-item"><a class="on" href="/archives">存档</a></li><li class="menu-item"><a href="/tags">标签</a></li><li class="menu-item"><a href="https://sanduck.github.io/about/" target="_blank" rel="noopener">梦</a></li></ul><ul class="social"><li><a class="fa fa-${name}" href="https://github.com/yfwz100" target="_blank" rel="noopener"><i class="sr-only">github</i></a></li><li><a class="fa fa-${name}" href="http://git.oschina.net/zhi" target="_blank" rel="noopener"><i class="sr-only">git</i></a></li><li><a class="fa fa-${name}" href="http://weibo.com/yfwz100" target="_blank" rel="noopener"><i class="sr-only">weibo</i></a></li></ul></nav></div></header><div class="post wrap"><div class="page"><div class="post-heading"><h1>网易互动娱乐实习笔试</h1></div><div class="post-body"><p>难度：★★★</p>
+<p>我知道网易互动娱乐实习生笔试题目的时候，实习生笔试已经结束了。同学说都没做出来，好奇之下尝试做了一下，感觉确实不容易，但是穷举法应该可以过一些测试用例的。</p>
+<a id="more"></a>
+<p>题目地址戳<a href="http://hihocoder.com/contest/ntest2016spring1/problems" target="_blank" rel="noopener">这里</a>。</p>
+<h1>题目1 ：电子数字</h1>
+<p>这个问题应该是这三题里最简单的一道吧，要求求出可能的数列组合的个数。对于这题，我把问题转为两个步骤：</p>
+<ol>
+<li>从输入列表中提取每个电子数字所占位置代表的潜在候选数字；</li>
+<li>遍历各个数位上的候选数字，生成候选数字来比较，最终得出组合的个数。</li>
+</ol>
+<p>生成候选数字的步骤我直接使用 HashSet 来做数列交集，在输入的时候就生成各个数位上的候选数字。如果说 HashSet 的 contains 方法是 O(1) 的，那么这步的复杂度应该是 O(k)，总体来说就是 O(9k)。而对于第二步，遍历……遍历应该是可行的，毕竟题目规定了最多只是 5 位数，对于 1Ghz 的电脑来说，在 1s 内完全遍历 10^5 个数字组合也不难。</p>
+<h1>题目2 ：源代码编译</h1>
+<p>源码编译这个题实际上我在做阿里移动推荐算法比赛的时候做过——整理文件的依赖关系并最终生成文件的编译顺序表。当时处理的是 SQL 文件依赖，因为算法比赛的时候各个人自己独立地创建表，而最终需要一份可以提交的 SQL 文件。当时没有考虑算法复杂度，这次考虑了一下，实际上就是一种带有特定依赖的排序。稍微修改一下快排的比较函数，应该很轻易就能解决这道题。可惜测评时间已过，无法验证了。</p>
+<h1>题目3 ：画线</h1>
+<p>这道题有很好的应用背景——以前做游戏的时候也想过，怎样可以合并某些操作从而优化整个执行流程。不过以前也就想想，没实际执行过。</p>
+<p>这道题的考虑也比较简单，每次获得输入后，求出线段的斜率 k ，找出之前已经输入的斜率为 k 的线段集合，找出该直线是否可以合并到已经输入的线段集合中。这里可以优化的地方估计是建立斜率 k 的线段集合的索引，使得新加入的线段可以快速地判断能否合并，这样，时间复杂度就可以近似线性了。不过，暴力解的话，应该就是 O(n^2) 。</p>
+<p>我想，对于玩 ACM-ICPC 的同学来说，应该是小 case 吧，努力学习ing。</p>
+</div><div class="post-meta">由 <span class="author"><a href="mailto: yfwz100@yeah.net">Zhi</a></span> 写于 <span class="date">2016年3月18日</span> ·<span class="tags"><a class="tag" href="/tags/笔试/">笔试</a><a class="tag" href="/tags/OJ/">OJ</a></span></div><div class="cloud-tie-wrapper" id="cloud-tie-wrapper"></div><script type="text/javascript" src="https://img1.cache.netease.com/f2e/tie/yun/sdk/loader.js"></script><script type="text/javascript">var cloudTieConfig = {
+  url: document.location.href, 
+  sourceId: "",
+  productKey: "2311812cfc39469b8c071ba8f99d562e",
+  target: "cloud-tie-wrapper"
+};
+var yunManualLoad = true;
+Tie.loader("aHR0cHM6Ly9hcGkuZ2VudGllLjE2My5jb20vcGMvbGl2ZXNjcmlwdC5odG1s", true);</script><script type="text/javascript" src="https://img1.cache.netease.com/f2e/tie/yun/sdk/loader.js"></script></div></div><footer><div class="page"><address class="author">&copy; Zhi</address><div class="hexo-powered">博客由 <a href="http://www.hexo.io" target="_blank" rel="noopener">Hexo</a> 驱动</div><div class="rss"><a class="fa fa-rss-square" href="/atom.xml"></a></div></div></footer></body></html>

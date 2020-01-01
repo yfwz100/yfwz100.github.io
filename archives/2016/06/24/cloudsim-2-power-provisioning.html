@@ -1,0 +1,106 @@
+<!DOCTYPE html><html><head><meta charset="utf-8"><title>植的博客</title><meta name="viewport" content="width=device-width, initial-scale=1"><link rel="stylesheet" href="//cdn.bootcss.com/font-awesome/4.6.3/css/font-awesome.min.css">
+<link rel="stylesheet" href="/css/base.css">
+<script type="text/x-mathjax-config">MathJax.Hub.Config({
+  tex2jax: {
+    inlineMath: [['$','$'], ['\\(','\\)']],
+    displayMath: [['$$', '$$'], ['\\[','\\]']],
+    processEscapes: true,
+    processEnvironments: true,
+    skipTags: ['script', 'noscript', 'style', 'textarea', 'pre','code'],
+    TeX: { equationNumbers: { autoNumber: "AMS" },
+         extensions: ["AMSmath.js", "AMSsymbols.js"] }
+  }
+});</script><script src="//cdn.bootcss.com/mathjax/2.6.1/MathJax.js?config=default"></script><script type="text/javascript">(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?ad6863b0ceb3ebc04afed41dc020bd78";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();</script><meta name="generator" content="Hexo 4.2.0"><link rel="alternate" href="/atom.xml" title="植的博客" type="application/atom+xml">
+</head><body><header><div class="page"><nav><ul class="brand"><li><a href="/">植的博客</a></li></ul><ul class="blog"><!-- List other items on menu.--><li class="menu-item"><a class="on" href="/archives">存档</a></li><li class="menu-item"><a href="/tags">标签</a></li><li class="menu-item"><a href="https://sanduck.github.io/about/" target="_blank" rel="noopener">梦</a></li></ul><ul class="social"><li><a class="fa fa-${name}" href="https://github.com/yfwz100" target="_blank" rel="noopener"><i class="sr-only">github</i></a></li><li><a class="fa fa-${name}" href="http://git.oschina.net/zhi" target="_blank" rel="noopener"><i class="sr-only">git</i></a></li><li><a class="fa fa-${name}" href="http://weibo.com/yfwz100" target="_blank" rel="noopener"><i class="sr-only">weibo</i></a></li></ul></nav></div></header><div class="post wrap"><div class="page"><div class="post-heading"><h1>CloudSim 笔记（2）- 能耗节约的虚拟机调度评估</h1></div><div class="post-body"><p>CloudSim 的能耗模块是在 3.0 版本完善的。最早的工作可能在 2011 年到 2012 年之间，论文：</p>
+<blockquote>
+<p>Anton Beloglazov, and Rajkumar Buyya, “<a href="http://dx.doi.org/10.1002/cpe.1867" target="_blank" rel="noopener">Optimal Online Deterministic Algorithms and Adaptive Heuristics for Energy and Performance Efficient Dynamic Consolidation of Virtual Machines in Cloud Data Centers</a>”, Concurrency and Computation: Practice and Experience (CCPE), Volume 24, Issue 13, Pages: 1397-1420, John Wiley &amp; Sons, Ltd, New York, USA, 2012</p>
+</blockquote>
+<a id="more"></a>
+<p>论文主要讨论了能耗和性能之间平衡的最优方法。首先阐述了单机上的 VM 迁移问题，确定单机的最佳迁移时机并应用竞争分析建立一个在线最优算法，然后分析多机动态迁移的问题。分别使用竞争分析说明确定性的 online 最优算法、用平均情况说明非确定性的 online 最优算法。</p>
+<p>相应地支持仿真实验， CloudSim 在核心程序中加入了 <code>org.cloudbus.cloudsim.power</code> 包，即虚拟机能耗仿真的包。其目录结构如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line">.</span><br><span class="line">├── PowerDatacenter.java</span><br><span class="line">├── PowerDatacenterBroker.java</span><br><span class="line">├── PowerDatacenterNonPowerAware.java</span><br><span class="line">├── PowerHost.java</span><br><span class="line">├── PowerHostUtilizationHistory.java</span><br><span class="line">├── PowerVm.java</span><br><span class="line">├── PowerVmAllocationPolicyAbstract.java</span><br><span class="line">├── PowerVmAllocationPolicyMigrationAbstract.java</span><br><span class="line">├── PowerVmAllocationPolicyMigrationInterQuartileRange.java</span><br><span class="line">├── PowerVmAllocationPolicyMigrationLocalRegression.java</span><br><span class="line">├── PowerVmAllocationPolicyMigrationLocalRegressionRobust.java</span><br><span class="line">├── PowerVmAllocationPolicyMigrationMedianAbsoluteDeviation.java</span><br><span class="line">├── PowerVmAllocationPolicyMigrationStaticThreshold.java</span><br><span class="line">├── PowerVmAllocationPolicySimple.java</span><br><span class="line">├── PowerVmSelectionPolicy.java</span><br><span class="line">├── PowerVmSelectionPolicyMaximumCorrelation.java</span><br><span class="line">├── PowerVmSelectionPolicyMinimumMigrationTime.java</span><br><span class="line">├── PowerVmSelectionPolicyMinimumUtilization.java</span><br><span class="line">├── PowerVmSelectionPolicyRandomSelection.java</span><br><span class="line">├── lists</span><br><span class="line">│   └── PowerVmList.java</span><br><span class="line">└── models</span><br><span class="line">    ├── PowerModel.java</span><br><span class="line">    ├── PowerModelCubic.java</span><br><span class="line">    ├── PowerModelLinear.java</span><br><span class="line">    ├── PowerModelSpecPower.java</span><br><span class="line">    ├── PowerModelSpecPowerHpProLiantMl110G3PentiumD930.java</span><br><span class="line">    ├── PowerModelSpecPowerHpProLiantMl110G4Xeon3040.java</span><br><span class="line">    ├── PowerModelSpecPowerHpProLiantMl110G5Xeon3075.java</span><br><span class="line">    ├── PowerModelSpecPowerIbmX3250XeonX3470.java</span><br><span class="line">    ├── PowerModelSpecPowerIbmX3250XeonX3480.java</span><br><span class="line">    ├── PowerModelSpecPowerIbmX3550XeonX5670.java</span><br><span class="line">    ├── PowerModelSpecPowerIbmX3550XeonX5675.java</span><br><span class="line">    ├── PowerModelSqrt.java</span><br><span class="line">    └── PowerModelSquare.java</span><br></pre></td></tr></table></figure>
+<p>为了支持能耗评估，CloudSim 实际上作出了不少的修改，并采用了一种侵入式的设计，不仅仅局限于 <code>power</code> 包。为了获得性能参数，甚至改变了原来 CloudSim 的事件循环进行了修改。在数据收集方面，放弃了之前 CloudSim 论文发表时候用的 Sensor 类，而是采用在 <code>PowerDatacenter</code> 和 <code>VM</code> 等实体里嵌入数据收集的代码。分解起来有点费劲。</p>
+<p>以下是简要的修改说明：</p>
+<ol>
+<li>实体相关：
+<ul>
+<li>能耗数据中心（<code>PowerDatacenter</code>）：覆盖了调度更新的算法以支持能耗的计算，包括能耗调度算法的嵌入（见调度策略）、能耗收集计算两方面的更新</li>
+<li>能耗数据中心用户（<code>PowerDatacenterBroker</code>）：在处理出错上提前退出，几乎没更新</li>
+<li>能耗主机（<code>PowerHost</code>、<code>PowerHostUtilizationHistory</code>）：新增能耗模型相关的更新</li>
+<li>能耗虚拟机（<code>PowerVm</code>）：覆盖方法记录 CPU 使用历史</li>
+</ul>
+</li>
+<li>模型：
+<ul>
+<li>调度策略
+<ul>
+<li>选择策略（<code>PowerVmSelectionPolicy</code>）：找出给定的 <code>PowerHost</code> 要迁移的虚拟机</li>
+<li>放置策略（<code>PowerVmAllocationPolicyAbstract</code>）：继承自 <code>VmAllocationPolicy</code>，简单实现了分配虚拟机到主机的策略，并在 <code>optimizeAllocation(vmList)</code> 方法中返回主机和虚拟机的优化配对</li>
+</ul>
+</li>
+<li>资源利用率的能耗模型（<code>PowerModel</code>）：主要是根据资源利用率（CPU？）获取能耗</li>
+</ul>
+</li>
+</ol>
+<p>提出的几种算法：</p>
+<ol>
+<li>虚拟机放置（分配）择策略：主要是使用稳定估计量估计主机是否需要过载
+<ul>
+<li>基础统计量：<code>MigrationInterQuartileRange</code>、<code>MigrationMedianAbsoluteDeviation</code></li>
+<li>回归预测：<code>MigrationLocalRegression</code>、<code>MigrationLocalRegressionRobust</code></li>
+<li>固定阈值判断：<code>MigrationStaticThreshold</code></li>
+<li>不优化（对照实验）：<code>Simple</code></li>
+</ul>
+</li>
+<li>虚拟机选择策略：
+<ul>
+<li>最大相关性：<code>MaximumCorrelation</code> 选择资源利用率向量的相关性最大的虚拟机进行迁移</li>
+<li>最短迁移时间：<code>MinimumMigrationTime</code> 尽可能近，并且内存尽可能少的虚拟机进行迁移</li>
+<li>最低利用率：<code>MinimumUtilization</code> 选择利用率最低的进行迁移，使性能损失减小</li>
+<li>随机选择（对照实验）：<code>RandomSelection</code></li>
+</ul>
+</li>
+</ol>
+<p>其选择虚拟机的基本依据来自资源利用率和能耗的历史统计量，算法的具体过程可以参考论文。</p>
+<p>对能耗的仿真模型定义在 <code>PowerModel</code>，这个借口只提供一个抽象方法，就是 <code>getPower(double):double</code> 从给定的资源利用率里推导出能耗。估计 CloudSim 的想法是对每个资源都建立一个利用率到能耗的映射，然后能耗是所有资源的累积和：</p>
+<p>$$<br>
+P = \sum_{u\in U} P_u(u)<br>
+$$<br>
+其中的 $P_u(u)$ 即建立的利用率到能耗的映射。对于 CloudSim Power 部分的论文和具体实现来说，只考虑了粗粒度下 CPU 的能耗代表整机能耗，具体的依据来源于</p>
+<blockquote>
+<p>Kusic D, Kephart JO, Hanson JE, Kandasamy N, Jiang G. Power and performance management of virtualized computing environments via lookahead control. Cluster Computing 2009; 12(1):1–15.</p>
+</blockquote>
+<p>另一篇文献同样说到这个事情，出自 Google 研究员的关于 CPU 到能耗的经验曲线模型：</p>
+<blockquote>
+<p>Fan, Xiaobo, W. D. Weber, and L. A. Barroso. “Power provisioning for a warehouse-sized computer.” Acm Sigarch Computer Architecture News 35.2(2007):13-23.</p>
+</blockquote>
+<p>形式化描述为：</p>
+<p>$$<br>
+P_{CPU}(u) = \alpha (2u - u^r) + \sigma<br>
+$$<br>
+思路都是用 CPU 能耗直接替代整机能耗。这个一方面确实是 CPU 在能耗方面占了主导，另一方面，则是由于分析的便捷性。</p>
+<p>当然，对能耗模型的调研，觉得这篇文章的说法比较靠谱：</p>
+<blockquote>
+<p>Kansal, Aman, et al. “Virtual machine power metering and provisioning.” Acm Symposium on Cloud Computing ACM, 2010:39-50.</p>
+</blockquote>
+<p>CPU 大约占了 60% 的能耗，其余的能耗大户包括 RAM 和磁盘。但是要对 CloudSim 进行扩展，不修改 <code>power</code> 包里的内容估计是做不到了。</p>
+<p>另外，对于多核架构来说，简单的线性模型也是很难说服的，在论文的实验部分，作者意识到这个问题，因此，还引用了标准组织 <a href="http://www.spec.org/power_ssj2008/" target="_blank" rel="noopener">SPECPower 2008</a> 公布的季度各主流服务器厂商的服务器 CPU 利用率和功耗的对应表作为关系映射。</p>
+<p>由于动态调度，涉及到一台物理主机服务多个 VM 的情况。大多数论文认为虚拟机放置是一种装箱问题，但实际上一台物理机可以服务的 VM 数目应该是不确定的。但是，要考虑“过载”（overload）的情况，作为一种性能损失的衡量。论文认为过载是由于所分配的 VM 都满载以后，可能违反一次 SLA（服务等级协定）。而这个定义感觉是不清晰的。实际上，物理核心数和 VM 要求的核心数可能存在不一致的情况。在典型的 Web 应用场景，实际上 CPU 满载的情况并不多，主要以 IO 处理为主。桌面应用满载的情况更低了，这个自己就可以验证。因此，多个 VM 共用一个核心也是完全可能的，也是资源极大化利用应该考虑的。</p>
+<p>在后来修改版里，CloudSim 3.0 引入了 <code>VmSchedulerTimeSharedOverSubscription</code> 类对满载的虚拟机进行调度。但采用的是简单的分时调度，采用 MIPS （每秒指令数）来量度：</p>
+<p>$$<br>
+MIPS_{VM} = \min \left( \frac{MIPS_{PM} }{n_{VM} }, MIPS_{VM} \right)<br>
+$$</p>
+<p>随着 VM 的增加，每个 VM 获得的实际 MIPS 比所请求的 MIPS 少；而分配的 VM 较少时，单个 VM 最多的资源也只能是规定的资源量。然而这么定义在公平调度的意义上是合理的。但 VM 在实际的调度环境中，是可以进入休眠状态而基本不消耗资源，分配给该 VM 的资源可以被另一个资源所独占（优先级调度）。另外一点是调度器也没有考虑优先级的问题。</p>
+</div><div class="post-meta">由 <span class="author"><a href="mailto: yfwz100@yeah.net">Zhi</a></span> 写于 <span class="date">2016年6月24日</span> ·<span class="tags"><a class="tag" href="/tags/云计算/">云计算</a><a class="tag" href="/tags/服务评估/">服务评估</a></span></div><div class="cloud-tie-wrapper" id="cloud-tie-wrapper"></div><script type="text/javascript" src="https://img1.cache.netease.com/f2e/tie/yun/sdk/loader.js"></script><script type="text/javascript">var cloudTieConfig = {
+  url: document.location.href, 
+  sourceId: "",
+  productKey: "2311812cfc39469b8c071ba8f99d562e",
+  target: "cloud-tie-wrapper"
+};
+var yunManualLoad = true;
+Tie.loader("aHR0cHM6Ly9hcGkuZ2VudGllLjE2My5jb20vcGMvbGl2ZXNjcmlwdC5odG1s", true);</script><script type="text/javascript" src="https://img1.cache.netease.com/f2e/tie/yun/sdk/loader.js"></script></div></div><footer><div class="page"><address class="author">&copy; Zhi</address><div class="hexo-powered">博客由 <a href="http://www.hexo.io" target="_blank" rel="noopener">Hexo</a> 驱动</div><div class="rss"><a class="fa fa-rss-square" href="/atom.xml"></a></div></div></footer></body></html>

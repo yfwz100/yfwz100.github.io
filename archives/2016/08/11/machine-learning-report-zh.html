@@ -1,0 +1,43 @@
+<!DOCTYPE html><html><head><meta charset="utf-8"><title>植的博客</title><meta name="viewport" content="width=device-width, initial-scale=1"><link rel="stylesheet" href="//cdn.bootcss.com/font-awesome/4.6.3/css/font-awesome.min.css">
+<link rel="stylesheet" href="/css/base.css">
+<script type="text/x-mathjax-config">MathJax.Hub.Config({
+  tex2jax: {
+    inlineMath: [['$','$'], ['\\(','\\)']],
+    displayMath: [['$$', '$$'], ['\\[','\\]']],
+    processEscapes: true,
+    processEnvironments: true,
+    skipTags: ['script', 'noscript', 'style', 'textarea', 'pre','code'],
+    TeX: { equationNumbers: { autoNumber: "AMS" },
+         extensions: ["AMSmath.js", "AMSsymbols.js"] }
+  }
+});</script><script src="//cdn.bootcss.com/mathjax/2.6.1/MathJax.js?config=default"></script><script type="text/javascript">(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?ad6863b0ceb3ebc04afed41dc020bd78";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();</script><meta name="generator" content="Hexo 4.2.0"><link rel="alternate" href="/atom.xml" title="植的博客" type="application/atom+xml">
+</head><body><header><div class="page"><nav><ul class="brand"><li><a href="/">植的博客</a></li></ul><ul class="blog"><!-- List other items on menu.--><li class="menu-item"><a class="on" href="/archives">存档</a></li><li class="menu-item"><a href="/tags">标签</a></li><li class="menu-item"><a href="https://sanduck.github.io/about/" target="_blank" rel="noopener">梦</a></li></ul><ul class="social"><li><a class="fa fa-${name}" href="https://github.com/yfwz100" target="_blank" rel="noopener"><i class="sr-only">github</i></a></li><li><a class="fa fa-${name}" href="http://git.oschina.net/zhi" target="_blank" rel="noopener"><i class="sr-only">git</i></a></li><li><a class="fa fa-${name}" href="http://weibo.com/yfwz100" target="_blank" rel="noopener"><i class="sr-only">weibo</i></a></li></ul></nav></div></header><div class="post wrap"><div class="page"><div class="post-heading"><h1>记一次机器学习学术报告</h1></div><div class="post-body"><p>在腾讯大厦听了周志华老师团队的报告，主要讲机器学习的下一步研究内容。其中有一些比较个人觉得挺有趣的名词。</p>
+<a id="more"></a>
+<ol>
+<li>
+<p>机器学习的鲁棒性（robustness of machine learning）：机器学习曾经只是为了辅助人类决策，而随着应用深入，人们对机器学习的要求越来越高，甚至要好于人类。在这个情况下，机器学习对算法的鲁棒性有了更高的要求。是一个值得深入的研究方向。这里还顺带批评了一下深度学习在处理问题上的一些非鲁棒性的问题。</p>
+</li>
+<li>
+<p>多标记学习的细节（multi-label learning）：人对事物的标签是含糊的，这体现在标记的多义性和非互斥性，如何对标记的关联性、错误性进行机器学习？传统的方法是 one-vs-rest 的方式进行二分类编码，训练N个分类器，而实际上这样做忽略了标签之间的关联性，还导致标记不平衡的问题。</p>
+</li>
+<li>
+<p>标记分布学习应用（label distribution learning）：这部分是我比较感兴趣的，感觉是一种贝叶斯的方法看待问题。生活中有很多事情都不是绝对的，他们可能或多或少属于某一个类别。与其学习标签，不如学习标记分布。</p>
+<p>另外举了3个和标记分布有关的应用：因为人们猎奇的心里特点，电影评分的非正态分布比平均分的预测更有参考价值——争议大的可能对票房更有帮助。利用心理学家对标记的先验分布在表情的情感分析得出表情隐含的意义。这让我想起以前做的几个分类应用，例如公交线路选乘、购物行为预测、点击预测等，负样本实际上都是模糊的。不买也可能是对方根本没看到而不是不感兴趣。</p>
+</li>
+<li>
+<p>半监督学习和图学习（semi-supervise learning）：如果判断事物的标记很困难的时候，如何进行监督学习？利用无标记样本是更廉价的方法，但是也会导致学习偏差的问题，加入了无标记的样本，可能还会导致分类正确性的降低。</p>
+</li>
+</ol>
+</div><div class="post-meta">由 <span class="author"><a href="mailto: yfwz100@yeah.net">Zhi</a></span> 写于 <span class="date">2016年8月11日</span> ·<span class="tags"><a class="tag" href="/tags/数据挖掘/">数据挖掘</a></span></div><div class="cloud-tie-wrapper" id="cloud-tie-wrapper"></div><script type="text/javascript" src="https://img1.cache.netease.com/f2e/tie/yun/sdk/loader.js"></script><script type="text/javascript">var cloudTieConfig = {
+  url: document.location.href, 
+  sourceId: "",
+  productKey: "2311812cfc39469b8c071ba8f99d562e",
+  target: "cloud-tie-wrapper"
+};
+var yunManualLoad = true;
+Tie.loader("aHR0cHM6Ly9hcGkuZ2VudGllLjE2My5jb20vcGMvbGl2ZXNjcmlwdC5odG1s", true);</script><script type="text/javascript" src="https://img1.cache.netease.com/f2e/tie/yun/sdk/loader.js"></script></div></div><footer><div class="page"><address class="author">&copy; Zhi</address><div class="hexo-powered">博客由 <a href="http://www.hexo.io" target="_blank" rel="noopener">Hexo</a> 驱动</div><div class="rss"><a class="fa fa-rss-square" href="/atom.xml"></a></div></div></footer></body></html>

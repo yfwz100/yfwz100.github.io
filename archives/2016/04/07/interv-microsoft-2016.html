@@ -1,0 +1,63 @@
+<!DOCTYPE html><html><head><meta charset="utf-8"><title>植的博客</title><meta name="viewport" content="width=device-width, initial-scale=1"><link rel="stylesheet" href="//cdn.bootcss.com/font-awesome/4.6.3/css/font-awesome.min.css">
+<link rel="stylesheet" href="/css/base.css">
+<script type="text/x-mathjax-config">MathJax.Hub.Config({
+  tex2jax: {
+    inlineMath: [['$','$'], ['\\(','\\)']],
+    displayMath: [['$$', '$$'], ['\\[','\\]']],
+    processEscapes: true,
+    processEnvironments: true,
+    skipTags: ['script', 'noscript', 'style', 'textarea', 'pre','code'],
+    TeX: { equationNumbers: { autoNumber: "AMS" },
+         extensions: ["AMSmath.js", "AMSsymbols.js"] }
+  }
+});</script><script src="//cdn.bootcss.com/mathjax/2.6.1/MathJax.js?config=default"></script><script type="text/javascript">(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?ad6863b0ceb3ebc04afed41dc020bd78";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();</script><meta name="generator" content="Hexo 4.2.0"><link rel="alternate" href="/atom.xml" title="植的博客" type="application/atom+xml">
+</head><body><header><div class="page"><nav><ul class="brand"><li><a href="/">植的博客</a></li></ul><ul class="blog"><!-- List other items on menu.--><li class="menu-item"><a class="on" href="/archives">存档</a></li><li class="menu-item"><a href="/tags">标签</a></li><li class="menu-item"><a href="https://sanduck.github.io/about/" target="_blank" rel="noopener">梦</a></li></ul><ul class="social"><li><a class="fa fa-${name}" href="https://github.com/yfwz100" target="_blank" rel="noopener"><i class="sr-only">github</i></a></li><li><a class="fa fa-${name}" href="http://git.oschina.net/zhi" target="_blank" rel="noopener"><i class="sr-only">git</i></a></li><li><a class="fa fa-${name}" href="http://weibo.com/yfwz100" target="_blank" rel="noopener"><i class="sr-only">weibo</i></a></li></ul></nav></div></header><div class="post wrap"><div class="page"><div class="post-heading"><h1>2016 微软实习生笔试</h1></div><div class="post-body"><p>难度：★★★★</p>
+<p>微软 4 月校招实习生笔试在昨天结束了，简单总结一下，<s>感觉难度不算很</s> ，对细节要求比较多、和产品（应用）结合的题目比较多。</p>
+<p>题目地址：<a href="http://hihocoder.com/contest/mstest2016april1/problems" target="_blank" rel="noopener">mstest2016april1</a></p>
+<p>共四题。</p>
+<a id="more"></a>
+<h1>Font Size</h1>
+<p>第一题是一个最佳字体的问题，可以想象是 Word 等文本处理、阅读器用于适配屏幕时候采用的最佳匹配算法。我把这个题目处理为一个优化问题：设定优化目标、选定初始值、误差最小化迭代。目标函数如下：</p>
+<p>$$ \sum_{i=0}^N \left \lceil a_i / \left \lfloor \frac{S}{W} \right \rfloor \right \rceil \leq \left \lfloor \frac{H}{S} \right \rfloor \cdot P$$</p>
+<p>初值的选取根据：</p>
+<p>$$ S_{max} =  \min \left (W, H, \left \lceil \frac{P \cdot H}{N}  \right \rceil \right )$$</p>
+<p>这个是 S 的最大值了。由于 S 是一个整数，不断递减达到目标函数即可。</p>
+<h1>403 Forbidden</h1>
+<p>这道题基本上就是解释防火墙规则，如果熟悉网络配置的话，应该很快能够做出来。难点有两个：</p>
+<ol>
+<li>IP 地址转换成二进制，并进行截位匹配；</li>
+<li>字符串的快速前缀搜索（前缀树？）。</li>
+</ol>
+<h1>Demo day</h1>
+<p>第三题往后都没有完整做出来了。这道题的关键是找出最小的障碍物数目，这个数目并不那么直观可以得到。只要确定了一个地图和障碍物的分布，机器人走出这个地方只有一种可能，于是就想了个回溯的方法，当然，时间复杂度估计会很高。暂时还没有很好的方法……</p>
+<blockquote>
+<p>Update: 被提示了一下 DP，就想到递推方程了，我感觉只要涉及方格、最小等字样的题目，可以直接联想递推方程。从结果倒推，要达到这个方格，只有两种可能，从上方往下，或者从左方往右。于是，这个方程可以设定为：</p>
+<p>$$<br>
+f(x,y,k) = \begin{cases}<br>
+\min ( f(x-1,y,k), f(x,y-1, \texttt{down}) + c(x, y+1) ) + b(x, y), k=\texttt{right} \<br>
+\min ( f(x,y-1,k), f(x-1,y, \texttt{right}) + c(x+1, y) ) + b(x, y), k=\texttt{down}<br>
+\end{cases}<br>
+$$</p>
+<p>其中 $c(x,y)$ 表示此处是否需要增加一个 block 才能通行；而 $b(x, y)$ 表示此处是否已经有一个 block 。</p>
+<p>剩下的事情就是遍历格子了……</p>
+</blockquote>
+<h1>Building in Sandbox</h1>
+<p>第一反应是 MineCraft 游戏……然后发现确实是相关的。简单地说，就是模拟玩家进行城堡的建设，给定摆放砖块的坐标序列，要满足两个条件：</p>
+<ol>
+<li>相邻性：砖块和其他砖块相邻，或者直接放在地上（z 坐标为 1）；</li>
+<li>可达性：可以从外面进入城堡放置砖块。</li>
+</ol>
+<p>实际上都和邻域搜索相关。做过计算机视觉的人，可能第一反应就是 FLANN 了。可达性的判断可能稍微麻烦一点。一个想法是从选定目标节点走出到最外围的城墙，如果可以走出去，就是可达的。</p>
+</div><div class="post-meta">由 <span class="author"><a href="mailto: yfwz100@yeah.net">Zhi</a></span> 写于 <span class="date">2016年4月7日</span> ·<span class="tags"><a class="tag" href="/tags/笔试/">笔试</a><a class="tag" href="/tags/OJ/">OJ</a></span></div><div class="cloud-tie-wrapper" id="cloud-tie-wrapper"></div><script type="text/javascript" src="https://img1.cache.netease.com/f2e/tie/yun/sdk/loader.js"></script><script type="text/javascript">var cloudTieConfig = {
+  url: document.location.href, 
+  sourceId: "",
+  productKey: "2311812cfc39469b8c071ba8f99d562e",
+  target: "cloud-tie-wrapper"
+};
+var yunManualLoad = true;
+Tie.loader("aHR0cHM6Ly9hcGkuZ2VudGllLjE2My5jb20vcGMvbGl2ZXNjcmlwdC5odG1s", true);</script><script type="text/javascript" src="https://img1.cache.netease.com/f2e/tie/yun/sdk/loader.js"></script></div></div><footer><div class="page"><address class="author">&copy; Zhi</address><div class="hexo-powered">博客由 <a href="http://www.hexo.io" target="_blank" rel="noopener">Hexo</a> 驱动</div><div class="rss"><a class="fa fa-rss-square" href="/atom.xml"></a></div></div></footer></body></html>

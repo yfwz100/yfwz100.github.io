@@ -1,0 +1,93 @@
+<!DOCTYPE html><html><head><meta charset="utf-8"><title>植的博客</title><meta name="viewport" content="width=device-width, initial-scale=1"><link rel="stylesheet" href="//cdn.bootcss.com/font-awesome/4.6.3/css/font-awesome.min.css">
+<link rel="stylesheet" href="/css/base.css">
+<script type="text/x-mathjax-config">MathJax.Hub.Config({
+  tex2jax: {
+    inlineMath: [['$','$'], ['\\(','\\)']],
+    displayMath: [['$$', '$$'], ['\\[','\\]']],
+    processEscapes: true,
+    processEnvironments: true,
+    skipTags: ['script', 'noscript', 'style', 'textarea', 'pre','code'],
+    TeX: { equationNumbers: { autoNumber: "AMS" },
+         extensions: ["AMSmath.js", "AMSsymbols.js"] }
+  }
+});</script><script src="//cdn.bootcss.com/mathjax/2.6.1/MathJax.js?config=default"></script><script type="text/javascript">(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?ad6863b0ceb3ebc04afed41dc020bd78";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();</script><meta name="generator" content="Hexo 4.2.0"><link rel="alternate" href="/atom.xml" title="植的博客" type="application/atom+xml">
+</head><body><header><div class="page"><nav><ul class="brand"><li><a href="/">植的博客</a></li></ul><ul class="blog"><!-- List other items on menu.--><li class="menu-item"><a class="on" href="/archives">存档</a></li><li class="menu-item"><a href="/tags">标签</a></li><li class="menu-item"><a href="https://sanduck.github.io/about/" target="_blank" rel="noopener">梦</a></li></ul><ul class="social"><li><a class="fa fa-${name}" href="https://github.com/yfwz100" target="_blank" rel="noopener"><i class="sr-only">github</i></a></li><li><a class="fa fa-${name}" href="http://git.oschina.net/zhi" target="_blank" rel="noopener"><i class="sr-only">git</i></a></li><li><a class="fa fa-${name}" href="http://weibo.com/yfwz100" target="_blank" rel="noopener"><i class="sr-only">weibo</i></a></li></ul></nav></div></header><div class="post wrap"><div class="page"><div class="post-heading"><h1>『天翼杯』比赛笔记</h1></div><div class="post-body"><p>插播一则非天池平台的数据比赛『<a href="http://bdg.ctyun.cn/algr_detail/PLXBy500006w?pageIndex=algr_rank" target="_blank" rel="noopener">天翼杯</a>』的笔记，不过这个比赛简直是阿里巴巴『天池』系列比赛的翻版…… 虽然这次没能进前 35 ，不过从中还是学到一些知识。</p>
+<h1>题目说明</h1>
+<p>给定 7 周用户视频网站访问记录，记录包括用户标识、访问时间、网站、访问次数。预测第8 周用户对各视频网站的浏览量。</p>
+<p>测评准则为 F1 分数，其中准确率为余弦值在预测集上的均值，召回率为预测集用户数和实际测试集用户数的交集与实际测试集用户数之比。</p>
+<h1>数据分布</h1>
+<p>记录数：525,488，独立用户数：29,932，用户的记录数分布如下：（横坐标是记录数，纵坐标是该记录数下的人数）</p>
+<p><img src="http://upload-images.jianshu.io/upload_images/78901-010b07d766ccc54f.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="用户的记录数分布"></p>
+<p>用户浏览量总趋势：（横坐标是日期，纵坐标是浏览量）</p>
+<p><img src="http://upload-images.jianshu.io/upload_images/78901-dcf1a78b3479e702.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="用户浏览量总趋势"></p>
+<p>各个视频站点的用户规模：</p>
+<p><img src="http://upload-images.jianshu.io/upload_images/78901-2700e81bdb0c7fad.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="用户规模"></p>
+<p>上一周有大约 50% 的用户会在下一周访问其中一个视频网站。这些用户中大部分是连续追剧者（连续几周都看）。</p>
+<h1>基准测试</h1>
+<p>余弦相似度是计算余弦夹角，而由于原点的万向向量表示，因此，一个基准估计不是全 0 而是全  1 。要测试选择的用户良好与否，应该以填充 0 表示基准预测。</p>
+<h2 id="经验规则"><a class="anchor" href="#经验规则">#</a>经验规则</h2>
+<p>按照余弦相似度作为测试准则的公式表示，可以看出，并不需要我们拟合出绝对数值（分母部分实际上除了向量的大小，也就是说去掉了规模化）。因此，我们要预测的是用户在第8周浏览站点的趋势，而不是绝对数值。为此，我们可以把预测问题看做一个概率分布问题。</p>
+<p>如果我们知道这个用户一定会去某一个站点，那么我们可以把这个用户的概率置为相同，也就是基准测试中填充1 的来历。</p>
+<p>根据日常规律，对用户看视频的经验总结：</p>
+<ol>
+<li>
+<p>历史总是会重复的；<br>
+历史的重复特性是从过去预测未来的基础之一，所谓合久必分分久必合，但历史重现的周期有长有短。历史的相似度是短期预测有效性的关键因素。</p>
+</li>
+<li>
+<p>人是容易遗忘的；<br>
+行为的时间距离越近，用户越容易记住该视频站点。但是用户记住该视频站点有两种可能：喜欢和厌恶。因此，最近行为的变化量是衡量的一个因素。另一个因素是，对于求和而言，历史行为量应该设定一个衰减函数。</p>
+</li>
+<li>
+<p>人的遗忘和事物的多样性相关；<br>
+用户看的视频站点种类少，而用户本身看视频量多，那么，用户继续看这个站点的概率大。</p>
+</li>
+<li>
+<p>人的记性和事物的重要性相关；<br>
+人的精力是有限的，因此总行为量是可以比较的，行为量相对于一般人对同一件事的行为量高则对此事比较关注。</p>
+</li>
+</ol>
+<h2 id="对本问题的一般规则策略"><a class="anchor" href="#对本问题的一般规则策略">#</a>对本问题的一般规则策略</h2>
+<ol>
+<li>
+<p>选择最近一周与前几周分别的交集（目前选择是前三周），选择连续观看的用户；</p>
+</li>
+<li>
+<p>按照同等无知原理，为选择出来的用户每天每个站点都填充 1，表示用户对站点喜好的均匀分布；</p>
+</li>
+<li>
+<p>根据用户对站点的偏好，为经常访问的站点赋予更高的权值；</p>
+</li>
+</ol>
+<h1>建模和特征工程</h1>
+<p>在测评指标中，我们可以了解到涉及到的三个量：用户、用户浏览轨迹、预测规模。其中，用户量是最容易控制的。浏览轨迹的控制上，我们把这个问题控制为拟合浏览概率分布的问题。</p>
+<p>因此，目前主要从以下三个方面对问题建模：</p>
+<ol>
+<li>
+<p>用户选择：选择用户是最终提交数据的规模大小的基础，可以限定召回率和用户数量的准确率；</p>
+</li>
+<li>
+<p>站点选择：减小预测范围，是用户的习惯分布更统一；</p>
+</li>
+<li>
+<p>浏览模式预测：拟合用户的习惯分布。</p>
+</li>
+</ol>
+<p>这3个主题的概率实际上是对问题从粗粒度到细粒度的划分。从粗粒度来看，用户选择是首要的，它决定了整体的召回率和基础准确率，也就是营销的成本。而站点的选择、进而到浏览模式则是对预测结果的进一步细化。</p>
+<h2 id="模型融合"><a class="anchor" href="#模型融合">#</a>模型融合</h2>
+<p>模型来源：使用用户特征筛选得到的用户排名、使用『用户、站点』两个特征筛选得到的用户排名。排名的方式是把两者加起来，然后进行整体排名，因为两个数据集中可能有不稳定的分布。</p>
+<h2 id="浏览模式预测"><a class="anchor" href="#浏览模式预测">#</a>浏览模式预测</h2>
+<p>如果浏览模式预测是一个概率分布的预测问题，那么概率分布一般可以通过历史行为数量来估计。但这里有一个要点需要注意的是，对行为量的时间衰减的评估。</p>
+</div><div class="post-meta">由 <span class="author"><a href="mailto: yfwz100@yeah.net">Zhi</a></span> 写于 <span class="date">2016年1月26日</span> ·<span class="tags"><a class="tag" href="/tags/数据挖掘/">数据挖掘</a><a class="tag" href="/tags/比赛/">比赛</a></span></div><div class="cloud-tie-wrapper" id="cloud-tie-wrapper"></div><script type="text/javascript" src="https://img1.cache.netease.com/f2e/tie/yun/sdk/loader.js"></script><script type="text/javascript">var cloudTieConfig = {
+  url: document.location.href, 
+  sourceId: "",
+  productKey: "2311812cfc39469b8c071ba8f99d562e",
+  target: "cloud-tie-wrapper"
+};
+var yunManualLoad = true;
+Tie.loader("aHR0cHM6Ly9hcGkuZ2VudGllLjE2My5jb20vcGMvbGl2ZXNjcmlwdC5odG1s", true);</script><script type="text/javascript" src="https://img1.cache.netease.com/f2e/tie/yun/sdk/loader.js"></script></div></div><footer><div class="page"><address class="author">&copy; Zhi</address><div class="hexo-powered">博客由 <a href="http://www.hexo.io" target="_blank" rel="noopener">Hexo</a> 驱动</div><div class="rss"><a class="fa fa-rss-square" href="/atom.xml"></a></div></div></footer></body></html>

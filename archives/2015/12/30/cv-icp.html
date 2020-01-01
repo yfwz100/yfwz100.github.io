@@ -1,0 +1,86 @@
+<!DOCTYPE html><html><head><meta charset="utf-8"><title>植的博客</title><meta name="viewport" content="width=device-width, initial-scale=1"><link rel="stylesheet" href="//cdn.bootcss.com/font-awesome/4.6.3/css/font-awesome.min.css">
+<link rel="stylesheet" href="/css/base.css">
+<script type="text/x-mathjax-config">MathJax.Hub.Config({
+  tex2jax: {
+    inlineMath: [['$','$'], ['\\(','\\)']],
+    displayMath: [['$$', '$$'], ['\\[','\\]']],
+    processEscapes: true,
+    processEnvironments: true,
+    skipTags: ['script', 'noscript', 'style', 'textarea', 'pre','code'],
+    TeX: { equationNumbers: { autoNumber: "AMS" },
+         extensions: ["AMSmath.js", "AMSsymbols.js"] }
+  }
+});</script><script src="//cdn.bootcss.com/mathjax/2.6.1/MathJax.js?config=default"></script><script type="text/javascript">(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?ad6863b0ceb3ebc04afed41dc020bd78";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();</script><meta name="generator" content="Hexo 4.2.0"><link rel="alternate" href="/atom.xml" title="植的博客" type="application/atom+xml">
+</head><body><header><div class="page"><nav><ul class="brand"><li><a href="/">植的博客</a></li></ul><ul class="blog"><!-- List other items on menu.--><li class="menu-item"><a class="on" href="/archives">存档</a></li><li class="menu-item"><a href="/tags">标签</a></li><li class="menu-item"><a href="https://sanduck.github.io/about/" target="_blank" rel="noopener">梦</a></li></ul><ul class="social"><li><a class="fa fa-${name}" href="https://github.com/yfwz100" target="_blank" rel="noopener"><i class="sr-only">github</i></a></li><li><a class="fa fa-${name}" href="http://git.oschina.net/zhi" target="_blank" rel="noopener"><i class="sr-only">git</i></a></li><li><a class="fa fa-${name}" href="http://weibo.com/yfwz100" target="_blank" rel="noopener"><i class="sr-only">weibo</i></a></li></ul></nav></div></header><div class="post wrap"><div class="page"><div class="post-heading"><h1>ICP 算法过程</h1></div><div class="post-body"><p>以下为读《<a href="http://xueshu.baidu.com/s?wd=paperuri%3A%289d45801efcd5be3894347f9dfecc88f3%29&amp;filter=sc_long_sign&amp;sc_ks_para=q%3DMethod%20for%20registration%20of%203-D%20shapes&amp;tn=SE_baiduxueshu_c1gjeupa&amp;ie=utf-8" target="_blank" rel="noopener">A Method for Registration of 3D Shape</a>》论文笔记。</p>
+<a id="more"></a>
+<h1>ICP 整体框架</h1>
+<p>定义点到点集的距离为点到点集的点的最短距离：</p>
+<p>$$ d(\vec{p}, X)=\min_{\vec{x} \in X}\left | \vec{x} - \vec{p} \right | $$</p>
+<p>那么点的对应点定义为</p>
+<p>$$ d(\vec{p}, X)=\arg \min_{\vec{x} \in X}\left | \vec{x} - \vec{p} \right | $$</p>
+<p>定义过程为求所有的在点集上的对应点的集合（通过上式给出）。<br>
+定义旋转过程（由下文给出）为：</p>
+<p>$$ (\vec{q}, d) = Q (P, Y) $$</p>
+<p>其中 $Y = C(P, X)$。</p>
+<p>算法描述如下：</p>
+<ol>
+<li>
+<p>取测量点集 $P$ 和模型点集 $X$，令 $\vec{p}\in P$，$\vec{x}\in X$，且 $N_p=\left | P \right |$，$N_x=\left | X \right |$；</p>
+</li>
+<li>
+<p>初始化初始点集为测量点集 $P_0=P$，初始化变换向量 $\vec{q}=[1,0,0,0,0,0]$，即旋转为 0，且各方向位移为 0，初始化迭代次数 $k=0$，执行以下几个步骤直到收敛：</p>
+<ol>
+<li>计算最近点集：$Y_k=C(P_k, X)$</li>
+<li>计算配准：$(\vec{q}_k,d)=Q(P_0, Y_k)$</li>
+<li>应用配准：$P_{k+1}=\vec{q}_k (P_0)$</li>
+<li>终止迭代过程：两次误差小于一个给定阈值 $\tau&gt;0$ 使 $d_k-d_{k+1}&lt;\tau$</li>
+</ol>
+</li>
+</ol>
+<p>如果希望用一个无维度的阈值，可以把$\tau$替换为$\tau\sqrt{tr(\Sigma_x)}$，其中模型的协方差矩阵的迹基本上和模型点的个数相等。</p>
+<h1>求点集间变换矩阵</h1>
+<p>设单位四元组 $\vec{q}_R=[q_0,q_1,q_2,q_3]^T$ ，其中 $q_0&gt;0, q_0<sup>2+q_1</sup>2+q_2<sup>2+q_3</sup>2+q_4^2=1$</p>
+<p>有四元组到旋转矩阵的变换来说，旋转矩阵可以表示为：</p>
+<p>$$ R(\vec{q}_R)=\begin{bmatrix}<br>
+(q_0<sup>2+q_1</sup>2-q_2<sup>2-q_3</sup>2 &amp; 2(q_1 q_2-q_0 q_3 ) &amp; (q_1 q_3+q_0 q_2 ) \<br>
+2(q_1 q_2+q_0 q_3 )  &amp; q_0<sup>2+q_2</sup>2-q_1<sup>2-q_3</sup>2  &amp; 2(q_2 q_3-q_0 q_1 ) \<br>
+2(q_1 q_3-q_0 q_2 )  &amp; 2(q_2 q_3+q_0 q_1 ) &amp; q_0<sup>2+q_3</sup>2-q_1<sup>2-q_2</sup>2 )<br>
+\end{bmatrix} $$</p>
+<p>令位移向量为 $\vec{q}_T=[q_4,q_5,q_6]^T$</p>
+<p>完整的配准状态向量表示为 $\vec{q}=[\vec{q}_R | \vec{q}_T]$</p>
+<p>令测量点集为$P={\vec{p}}$，模型点集为 $X={\vec{x}}$，并且点数目 $N_p$。目标是求使 $P$ 靠拢（变换）到 $X$ 的坐标系下，设目标函数为</p>
+<p>$$ f(\vec{q})=\frac{1}{N_p} \sum_{i=1}^{N_p} \left | \vec{x}_i-R(\vec{q}_R ) \vec{p}_i-\vec{q}_T \right |^2 $$</p>
+<p>设点集 $P$ 的质心为</p>
+<p>$$\vec{\mu}<em>p=\frac{1}{N_p} \sum</em>{i=1}^{N_p} \vec{p}$$</p>
+<p>点集 $X$ 的质心为</p>
+<p>$$\vec{\mu}<em>x=\frac{1}{N_x} \sum</em>{i=1}^{N_x} \vec{x}$$</p>
+<p>设点集和的协方差矩阵为</p>
+<p>$$ \Sigma_{px}=\frac{1}{N_p} \sum_{i=1}^{N_x} \left [ (\vec{p}_i-\vec{\mu}_p)(\vec{x}_i-\vec{\mu}<em>x)^T \right]=\frac{1}{N_p} \sum</em>{i=1}^{N_x} \left [ \vec{p}_i \cdot \vec{x}_i^T - \vec{\mu}_p \vec{\mu}_x^T \right ] $$</p>
+<p>设反对称矩阵</p>
+<p>$$ A_{ij} = \left ( \Sigma_{px} - \Sigma_{px}^T \right )_{ij} $$</p>
+<p>取其循环部分组成列向量</p>
+<p>$$ \Delta = [A_{23}, A_{31}, A_{12}]^T $$</p>
+<p>使得</p>
+<p>$$ Q(\Sigma_{px}) = \begin{bmatrix}<br>
+tr(\Sigma_{px}) &amp; \Delta^T \<br>
+\Delta &amp; \Sigma_{px}-\Sigma_{px}^T-tr(\Sigma_{px}) I_3<br>
+\end{bmatrix} $$</p>
+<p>其中 $I_3$ 是单位矩阵。取矩阵 $Q(\Sigma_{px})$ 最大的特征向量对应的单位特征向量 $\vec{q}_R=[q_0, q_1, q_2, q_3]^T$ 为最优旋转。</p>
+<p>最优位移向量为</p>
+<p>$$ \vec{q}_T = \vec{\mu}_x - R(\vec{q}_R) \vec{\mu}_p $$</p>
+<p>这个用最小二乘法解四元组的方法记为</p>
+<p>$$ (\vec{q}, d_{ms}) = Q(P, X) $$</p>
+<p>而 $d_{ms}$ 为配对的均方误差（见目标函数）。另外 $\vec{q}§$ 被记为经过配准量 $\vec{q}$ 的点集。</p>
+</div><div class="post-meta">由 <span class="author"><a href="mailto: yfwz100@yeah.net">Zhi</a></span> 写于 <span class="date">2015年12月30日</span> ·<span class="tags"><a class="tag" href="/tags/计算机视觉/">计算机视觉</a><a class="tag" href="/tags/点云配准/">点云配准</a></span></div><div class="cloud-tie-wrapper" id="cloud-tie-wrapper"></div><script type="text/javascript" src="https://img1.cache.netease.com/f2e/tie/yun/sdk/loader.js"></script><script type="text/javascript">var cloudTieConfig = {
+  url: document.location.href, 
+  sourceId: "",
+  productKey: "2311812cfc39469b8c071ba8f99d562e",
+  target: "cloud-tie-wrapper"
+};
+var yunManualLoad = true;
+Tie.loader("aHR0cHM6Ly9hcGkuZ2VudGllLjE2My5jb20vcGMvbGl2ZXNjcmlwdC5odG1s", true);</script><script type="text/javascript" src="https://img1.cache.netease.com/f2e/tie/yun/sdk/loader.js"></script></div></div><footer><div class="page"><address class="author">&copy; Zhi</address><div class="hexo-powered">博客由 <a href="http://www.hexo.io" target="_blank" rel="noopener">Hexo</a> 驱动</div><div class="rss"><a class="fa fa-rss-square" href="/atom.xml"></a></div></div></footer></body></html>

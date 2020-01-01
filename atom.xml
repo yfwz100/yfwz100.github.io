@@ -1,0 +1,492 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <title>植的博客</title>
+  
+  <subtitle>机器学习|数据挖掘</subtitle>
+  <link href="/atom.xml" rel="self"/>
+  
+  <link href="http://zhi.oschina.io/"/>
+  <updated>2020-01-01T04:50:51.580Z</updated>
+  <id>http://zhi.oschina.io/</id>
+  
+  <author>
+    <name>Zhi</name>
+    
+  </author>
+  
+  <generator uri="https://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>Gradient Boosting 学习笔记</title>
+    <link href="http://zhi.oschina.io/archives/2017/05/14/gbdt-study.html"/>
+    <id>http://zhi.oschina.io/archives/2017/05/14/gbdt-study.html</id>
+    <published>2017-05-14T15:45:48.000Z</published>
+    <updated>2020-01-01T04:50:51.580Z</updated>
+    
+    <content type="html"><![CDATA[<p>也来学习一下近来比较火的 Gradient Boosting 算法，最近数据比赛里较热门的 xgboost 、 lightGBM、 GBM 都是基于 Grandient Boosting 的思路。 Gradient Boosting 集合了 Boosting 和 Bagging 的思想，其结果泛化性能较好，并且由决策树本身的性质决定了并不需要过多干预特征筛选，这些特性使得它在比赛中有较广泛的用途。</p><a id="more"></a><p>GBDT 的一个重要关键是所谓的 Boosting，那么什么是 Boosting ？</p><blockquote><p>💡 什么是 Boosting ？</p><p>简单地说，Boosting 算法就是通过不断地累积弱分类器的预测最终成为一个强分类器。如何理解使用弱分类器的目的呢？一个直观的理解，弱分类器往往发现的是事物的趋势，而不是具体到事物的本质（往往也没有这个能力），在积累了各种分类器从不同角度对趋势的理解，叠加以后，分类器的分类结果将会加深对趋势的理解；而如果一开始用强分类器，强分类器往往把握的是具体的特征，而且往往是用贪心算法（参考决策树学习）进行局部最优估计，因而很容易过拟合，而如果多个强分类器集中在一起，反而把过拟合现象进行加深，从而学习出过拟合的数据。</p><p>一个可视化参考：<a href="http://www.r-bloggers.com/an-attempt-to-understand-boosting-algorithms/" target="_blank" rel="noopener">http://www.r-bloggers.com/an-attempt-to-understand-boosting-algorithms/</a></p></blockquote><p>GDBT 的一般算法流程：</p><ol><li>初始化基础模型 $F_0(x) = \underset{\gamma}{\arg\min} \sum_{i=1}^n L(y_i, \gamma)$</li><li>迭代 $m \in (1, M)$<ol><li>计算伪梯度 $r_{im} = -\left[\frac{\partial L(y_i, F(x_i))}{\partial F(x_i)}\right]<em>{F(x)=F</em>{m-1}(x)} \quad \mbox{for } i=1,\ldots,n$</li><li>以伪梯度为类标，训练基础模型 $h_m(x)$</li><li>计算模型权重 $\gamma_m = \underset{\gamma}{\arg\min} \sum_{i=1}^n L\left(y_i, F_{m-1}(x_i) + \gamma h_m(x_i)\right)$</li><li>更新模型： $F_m(x) = F_{m-1}(x) + \gamma_m h_m(x)$</li></ol></li><li>得到最终模型 $F_m(x)$</li></ol><p>其中步骤 2 的第 4 小步，计算模型权重采用的是一维模型，更恰当地，应该采用区域模型（决策树对特征向量的预测实际上是就是对特征空间进行划分）：</p><p>$$F_m(x) = F_{m-1}(x) + \sum_{j=1}^J \gamma_{jm} I(x \in R_{jm}), \quad\gamma_{jm} = \underset{\gamma}{\arg\min} \sum_{x_i \in R_{jm}} L(y_i, F_{m-1}(x_i) + \gamma h_m(x_i))$$</p><p>但这样做无疑增加了计算量。为了简化操作，很多实现，例如 Spark MLlib 的 GradientBoostTree 中，模型参数 $\gamma_m$ 被规定为 1 ，这个并不没有简化学习率。</p><h2 id="损失函数"><a class="anchor" href="#损失函数">#</a>损失函数</h2><p>统计学习里提到的一个关键此时损失函数（Loss Function），这也是贯穿机器学习算法的一个思想，因此，GBDT 也可以从这个角度来解释。上文介绍到的 $L(y_i, \gamma)$ 实际上就是损失函数的统称。</p><p>阿里巴巴机器学习平台里对 GBDT 分类器作出了两种不同的节点：“GBDT 二分类”节点和“GBDT回归与排序”。“GBDT二分类”节点和&quot;GBDT回归与排序”节点实际上都可以处理分类问题，区别就在于其中的损失函数的计算。据文档介绍“GBDT二分类”节点实际上是GBDT-LR即带有 Logistic Regression Loss 损失函数的 GBDT 。而“GBDT回归与排序”节点则是采用普通的均方误差（MSE）损失函数。使用均方误差的函数实际上就是正常的 Gradient Boosting 方法，而不同在于，御膳房算法平台的 GBDT-LR 是经过 Logistic 函数改造的。</p><p>Gradient Boosting 方法是对损失函数的梯度的逐步学习（迭代），那么损失函数的梯度就决定了算法最终的收敛方向了。而 Gradient Boosting 方法对学习器的要求不高，因此基础构建的学习器错误率肯定很高的，而 Logistic 回归函数（即 sigmoid 曲线）表达式为 $ f(x) = \frac{1}{1+e^-x} $ ，其目的是把 $(-\infty, +\infty)$ 映射到 $(0, 1)$ ；而一个副作用是，尽可能地使每一个数值向极端值（0或1）靠近。如果选择这类损失函数，那么将有两个结果：使“靠近 1 的更靠近 1 ”或“靠近 0 的更靠近 0”，即加快了迭代收敛；也可能使“本来是 1 的更靠近 0”或“本来是 0 的更靠近 1”，即偏离了估计，使迭代更难收敛。如果每次分类器的分类效果不错，看起来能够加速收敛过程，提高算法效率。</p><h2 id="其他参数"><a class="anchor" href="#其他参数">#</a>其他参数</h2><p>学习率（Learning Rate） $F_m(x) = F_{m-1}(x) + \nu \cdot \gamma_m h_m(x), \quad 0 &lt; \nu \leq 1$ ，实践中越小的学习率分类预测效果越好。但是也要防止遇到鞍点，即拟合遇到局部最小值。</p><p>关于训练数据选择，随机梯度提升（Stochastic Gradient Boosting），受 Bagging 思想启发，每次训练时不直接用全局数据，而是对数据进行抽样，每次只选择一部分数据进行训练。</p>]]></content>
+    
+    <summary type="html">
+    
+      &lt;p&gt;也来学习一下近来比较火的 Gradient Boosting 算法，最近数据比赛里较热门的 xgboost 、 lightGBM、 GBM 都是基于 Grandient Boosting 的思路。 Gradient Boosting 集合了 Boosting 和 Bagging 的思想，其结果泛化性能较好，并且由决策树本身的性质决定了并不需要过多干预特征筛选，这些特性使得它在比赛中有较广泛的用途。&lt;/p&gt;
+    
+    </summary>
+    
+    
+    
+      <category term="机器学习" scheme="http://zhi.oschina.io/tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>学习 Redis 小结</title>
+    <link href="http://zhi.oschina.io/archives/2017/04/16/redis-overview.html"/>
+    <id>http://zhi.oschina.io/archives/2017/04/16/redis-overview.html</id>
+    <published>2017-04-16T10:17:29.000Z</published>
+    <updated>2020-01-01T04:50:51.584Z</updated>
+    
+    <content type="html"><![CDATA[<p>本科的时候就听说过 NoSQL 数据库，例如文档型数据库、键值存储、宽表存储等。 Redis 就是一个键值存储。键值存储的代表还有很多，例如 memcache 等。键值存储的特点是根据一个 key 找到一个 value，因此非常适合做缓存。但是 Redis 比一般的键值存储要更高级，因为其中的 value 带有丰富的数据结构。</p><a id="more"></a><p>相对于其他键值存储，Redis 的优点：</p><ul><li>速度快。每秒可执行大约110000次的设置(SET)操作，每秒大约可执行81000次的读取/获取(GET)操作。</li><li>支持丰富的数据类型。例如列表，集合，排序集和散列等等。这使得Redis很容易被用来解决各种问题，因为我们知道哪些问题可以更好使用地哪些数据类型来处理解决。</li><li>操作具有原子性。所有操作都是原子操作，这确保如果两个客户端并发访问，Redis服务器能接收更新的值。</li><li>多种用途，如：缓存、消息队列(Redis本地支持发布/订阅)，应用程序中的任何短期数据。</li></ul><p>丰富的集合操作并不被所有键值存储支持，应用会被高度耦合到这些数据结构实现中，不便于替换：</p><ul><li>操作原子性，所有 Redis 命令都是原子的，也就是说所有对 Redis 的数据结构的操作都不需要加锁。</li><li>复杂数据类型支持，例如哈希表，使用 memcache 进行替代并保持其语义将引入一定的工作量</li><li>消息处理，需要使用外部的消息处理工具进行替代。</li></ul><p>如果我们发现了 Redis 的瓶颈，那么我们对 Redis 进行替代的代价是很大的。</p><h2 id="基本键值对操作"><a class="anchor" href="#基本键值对操作">#</a>基本键值对操作</h2><p>基本的键值对操作（也称为字符串类型 value 的操作）：</p><table><thead><tr><th>命令</th><th>说明</th></tr></thead><tbody><tr><td>set KEY VALUE [EXPIRE_TIME]</td><td>设置键值对，并且可以额外地附加一个过期时间</td></tr><tr><td>get KEY</td><td>获取一个键的值</td></tr><tr><td>del KEY</td><td>删除一个键值对</td></tr><tr><td>exists KEY</td><td>检测一个键是否存在</td></tr><tr><td>touch KEY</td><td>更新一个键值对的访问时间，延长过期时间</td></tr><tr><td>keys [REG_EX]</td><td>检测所有的键或符合某种前缀/后缀的键</td></tr><tr><td>setex KEY VALUE</td><td>仅在 KEY 不存在时候设置为 VALUE</td></tr></tbody></table><p>这几个命令应该是一般键值存储都支持的操作。利用这些简单的命令就可以做一个简单的缓存了。然而 Redis 不止于此， Redis 还支持一些有意思的数据类型，例如，我们的 value 是一个数组，并且里面的数不能重复， Redis 提供了 Set 类型的数据结构。要注意到，这些操作都是原子的，因此不需要锁进行同步，这也是 Redis 易于使用的重要原因。</p><h2 id="无序不重复集合"><a class="anchor" href="#无序不重复集合">#</a>无序不重复集合</h2><table><thead><tr><th>命令</th><th>说明</th></tr></thead><tbody><tr><td>sadd KEY VALUE</td><td>往 KEY 中新增一个元素，如果重复则什么都不做</td></tr><tr><td>srem KEY VALUE</td><td>往 KEY 中删除一个元素，如果不存在则什么都不做</td></tr><tr><td>smembers KEY</td><td>返回 KEY 中所有元素</td></tr><tr><td>sismember KEY VALUE</td><td>判断 VALUE 是否在集合中</td></tr><tr><td>scard KEY</td><td>返回 KEY 中元素的数目</td></tr></tbody></table><p>注意到这里只有针对 Set 的操作，实际上上述 del、exists 操作可以通用在这个场合下。Redis 只是对 value 的类型进行了特殊的处理，所有针对 KEY 的操作，仍然通用基本键值对的操作。Set 类型的好处是，用户在客户端中不需要对 value 进行处理，直接就可以添加元素并保持 value 中 Set 的语义。</p><h2 id="有序集合"><a class="anchor" href="#有序集合">#</a>有序集合</h2><p>Redis 除了提供 Set 集合外，还提供了有序序列，可以保持 value 中值的顺序，并且支持取范围的操作，类似 Java 中的 TreeSet 。</p><table><thead><tr><th>命令</th><th>说明</th></tr></thead><tbody><tr><td>zadd KEY VALUE</td><td>添加 VALUE 到 KEY 所代表的有序列表中</td></tr><tr><td>zrem KEY VALUE</td><td>从 KEY 中删除 VALUE</td></tr><tr><td>zcard KEY</td><td>返回 KEY 中元素数目</td></tr><tr><td>zount KEY MIN MAX</td><td>返回某一个范围的数目</td></tr><tr><td>zrange KEY MIN MAX</td><td>返回某一个范围内的元素</td></tr><tr><td>zrevrange KEY MIN MAX</td><td>返回某一个范围内的元素，并逆序排列</td></tr><tr><td>……</td><td><a href="https://redis.io/commands#sorted_set" target="_blank" rel="noopener">更多</a></td></tr></tbody></table><h2 id="哈希表"><a class="anchor" href="#哈希表">#</a>哈希表</h2><p>哈希表代表的是二层键值对，在一个 key 下面嵌套一个 key-value 存储，这种好处是便于层级管理。</p><table><thead><tr><th>命令</th><th>说明</th></tr></thead><tbody><tr><td>hset KEY FIELD VALUE</td><td>设置 KEY 的 FIELD 里的 VALUE</td></tr><tr><td>hget KEY FIELD</td><td>获取 KEY 的 FIELD 里的 VALUE</td></tr><tr><td>hgetall KEY</td><td>获取 KEY 的所有 FIELD 以及 VALUE</td></tr><tr><td>hlen  KEY</td><td>获取 KEY 的 FIELD 的数量</td></tr><tr><td>hkeys KEY</td><td>获取 KEY 的所有 FIELD</td></tr><tr><td>hexists KEY FIELD</td><td>判断 KEY 里 FIELD 是否存在</td></tr></tbody></table><p>但这种层级结构是有限的，并不支持哈希表中再嵌套一个哈希表或者复杂的结构。有的开发者可能会把复杂的数据结构序列化成 JSON 然后存储，但是这样的话就把存储逻辑耦合到业务逻辑中了，可能并不能享受到 Redis 的数据结构方面的改进。</p><h2 id="小结"><a class="anchor" href="#小结">#</a>小结</h2><p>Redis 还支持 Geo 地理位置查询以及列表操作等，由于没有用到所以就没有分享。实际上把 KV 存储扩展为一个数据结构存储器，并与业务逻辑相分离。Redis 提供的丰富数据结构也是一种操作元语，能让开发者在使用数据结构的时候不需要复杂的逻辑，例如加锁、同步等，同时获得更高的访问速度或吞吐量。</p><p>Redis 在 3.0 才支持集群，而且这个集群还比较原始，例如不支持自动发现等，目前采用的基本上是静态配置方式。对于数据结构的 benchmark 由于缺少竞争者也比较少见，对于在分布式环境下是否还能保持复杂数据结构的性能也是一个问题。因此，Redis 要成为一个通用的数据结构存储器还有比较长的路要走。</p>]]></content>
+    
+    <summary type="html">
+    
+      &lt;p&gt;本科的时候就听说过 NoSQL 数据库，例如文档型数据库、键值存储、宽表存储等。 Redis 就是一个键值存储。键值存储的代表还有很多，例如 memcache 等。键值存储的特点是根据一个 key 找到一个 value，因此非常适合做缓存。但是 Redis 比一般的键值存储要更高级，因为其中的 value 带有丰富的数据结构。&lt;/p&gt;
+    
+    </summary>
+    
+    
+    
+      <category term="数据库" scheme="http://zhi.oschina.io/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>Go lang 使用感受</title>
+    <link href="http://zhi.oschina.io/archives/2017/04/16/thinking-in-golang.html"/>
+    <id>http://zhi.oschina.io/archives/2017/04/16/thinking-in-golang.html</id>
+    <published>2017-04-16T02:01:15.000Z</published>
+    <updated>2020-01-01T04:50:51.584Z</updated>
+    
+    <content type="html"><![CDATA[<p>使用 Go 语言进行开发已经两周了，学习过程中感觉 Go 语言借鉴了很多其他语言的概念，但是又推陈出新。Go 语言有几个语言特性我觉得还是很值得借鉴的~</p><a id="more"></a><h1>没有类，只有结构体</h1><p>Java 流行的原因是面向对象编程的概念普及。面向对象涉及到的三个概念确实使得编程更为方便，例如继承。但是继承也会引入很多问题，例如，继承的层级越多导致代码膨胀。而有时候你也不知道你应该有多少种抽象。而且，当一个类希望复用两个类的概念的时候，Java 并不能实现多重继承，只能通过组合模式以及代理模式实现多重继承。并且，多重继承用于代码复用被认为是一个反模式而被弃用。新的代码鼓励使用所谓 POJO （plain old java object）实现，并多用组合实现代码复用，使得代码复用较复杂。</p><p>Go 语言里没有类的概念，也就无所谓的继承。但是 Go 的结构体实现了类似继承的代码复用的特性。在结构体内声明匿名结构体，则视为该结构体“继承”了该结构体的内容，而且该结构体的所有属性、方法被默认地“继承”到新的结构体上，可以直接调用。正确地讲，这并不是真正的继承，而是一种概念复用。我们实现一个概念，实际上并不是代表我对这个概念名称有多执着，而是对其实现的认可。因此，Go 并没有实现概念的层级关系，也就没有所谓的“继承”关系了，而只是一种复用。并且，可以复用多个结构体。</p><p>如果了解了 Go 语言的接口以后，我觉得会更清晰。</p><h1>接口与实现</h1><p>Go 语言的接口和 C++、Java 等语言不同，接口的实现与否并不是在结构体声明的时候决定的，而是该结构体实现了接口所需要的所有函数，即视为实现了该接口。由此，我们可以做出一些很新颖的做法。例如，我们声明一个表达式类：</p><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">type</span> Expr <span class="keyword">interface</span> &#123;</span><br><span class="line">    String()  <span class="keyword">string</span></span><br><span class="line">    Compute() <span class="keyword">float64</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure><p>上述代码如果用 C 语言来写，估计要声明一个联合体或者一个结构体，来描述常量的定义。而在 Go 语言中，则没有引入任何结构体定义，只是新增了一个概念，用 float64 来表达的常量表达式的概念：</p><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">type</span> ValExpr <span class="keyword">float64</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(v ValExpr)</span> <span class="title">String</span><span class="params">()</span></span> &#123;</span><br><span class="line">    <span class="keyword">return</span> fmt.Sprintf(<span class="string">"%.6f"</span>, <span class="keyword">float64</span>(v))</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(v ValExpr)</span> <span class="title">Compute</span><span class="params">()</span></span> &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">float64</span>(v)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure><p>而上述代码清晰地表达了常量表达式本身就是一个常数，但在表达式的场合下，也是一个运算表达式。 Go 语言在概念的表达能力上要优于很多其他语言，十分值得其他语言借鉴。回到结构体实现的部分， Go 语言应该是面向概念和实现的语言，只要符合条件，都可以被认为是实现，从而简化了复用。</p><h1>并发控制</h1><p>Go 有着良好的并发控制，或者说作者一开始就是为多核时代的并发编程而设计的。 Go 从语言层面上支持多线程，关键字 <code>go</code> 可以为任意一个函数新建一个“线程”来执行。这里的“线程”并不是真的线程，而是一种轻量级并发单元。我们知道线程是进程的轻量级实现，但是也是由操作系统调度的。因此，线程的并行涉及到 CPU 的任务调度，这种调度是十分消耗资源的，涉及到上下文的切换等，尤其是 CPU 的多核环境。Go 使用了一种比线程更轻量级的实现，go routine ，即上述所谓的“线程”。Go routine 和真实的线程是多对多关系，并且 go routine 的数量远大于线程数量，Go routine 由内部调度器来执行，减少实际线程的切换。</p><p>这部分有很多良好的阅读材料就不再叙述：</p><ul><li><a href="http://shinley.com/" target="_blank" rel="noopener">《Go 语言圣经》</a></li><li><a href="http://www.kancloud.cn/kancloud/effective/72199" target="_blank" rel="noopener">《Effective Go》</a></li></ul><h1>吐槽：泛型</h1><p>Go 语言值得吐槽的地方恐怕在于泛型了。虽然 Go 灵活的接口机制使得很多泛型限制可以很好地实现，但这种机制只是单向的，并不能作为返回类型限制。例如，要实现一个简单的 HashMap，于是，我们定义方法：</p><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(s *HashSet)</span> <span class="title">Put</span><span class="params">(item HashItem, value <span class="keyword">interface</span>&#123;&#125;)</span></span> &#123;</span><br><span class="line">    <span class="comment">// ignore...</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure><p>其中 item 是一个带有 <code>hash()</code> 方法的接口：</p><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">type</span> HashItem <span class="keyword">interface</span> &#123;</span><br><span class="line">    Hash() <span class="keyword">int</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure><p>这个接口定义很完美，如果是 C++，要做 hash key 还要实现一个接口体之类的，而 Go 直接通过接口定义概念了。然而，作为 value 应该是没有什么输入限制的，所以，value 被定义为万能类型 <code>interface{}</code> 。然而，当我们定义取出函数的时候：</p><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(s *HashSet)</span> <span class="title">Get</span><span class="params">(item HashItem)</span> <span class="title">interface</span></span>&#123;&#125; &#123;</span><br><span class="line">    <span class="comment">// ignore...</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure><p>存进去的 value 的类型丢失了，我们只能得到万能类型 <code>interface{}</code>，这没什么用。因此， Go 语言的接口可以在一定程度上替代泛型的作用，但是这种泛型是单向的，是限制输入的，对于输出毫无办法。类型推断到这里就很糟糕了。于是，在基础的 Go 集合类里，大多数都是使用万能类型作为输出操作的类型，使得每次调用还要进行强制类型转换。这对于以集合作为输出的函数就是一个灾难，类型抹除使得调用者根本不知道返回的是什么，除非注释。为了让我的代码看起来容易理解，我还特意<a href="http://git.oschina.net/zhi/expr.go" target="_blank" rel="noopener">新建了两个类来封装用到的集合</a>……</p>]]></content>
+    
+    <summary type="html">
+    
+      &lt;p&gt;使用 Go 语言进行开发已经两周了，学习过程中感觉 Go 语言借鉴了很多其他语言的概念，但是又推陈出新。Go 语言有几个语言特性我觉得还是很值得借鉴的~&lt;/p&gt;
+    
+    </summary>
+    
+    
+    
+      <category term="编程语言" scheme="http://zhi.oschina.io/tags/%E7%BC%96%E7%A8%8B%E8%AF%AD%E8%A8%80/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>基于 Hexo 打造一个数学博客</title>
+    <link href="http://zhi.oschina.io/archives/2017/03/21/math-blog-by-pandoc.html"/>
+    <id>http://zhi.oschina.io/archives/2017/03/21/math-blog-by-pandoc.html</id>
+    <published>2017-03-21T04:05:46.000Z</published>
+    <updated>2020-01-01T04:50:51.584Z</updated>
+    
+    <content type="html"><![CDATA[<p>在 Hexo 博客引擎折腾了一下午数学公式显示。试了几个 Hexo 插件，效果都不是很理想。目前 Hexo 支持 Markdown 写博客，配合 <a href="http://typora.io" target="_blank" rel="noopener" title="A Markdown Editor">Typora</a> 写博客不错，也不用担心格式问题。不过，在 Markdown 写数学公式是一个问题。存在的解决方法是以 $…$ 为区域渲染 Latex 公式，但这种转换方式目前有存在一些问题。</p><a id="more"></a><p>一般来说，Hexo 的数学公式插件有两种处理方法：</p><ol><li>先把 $…$ 处理为 HTML 然后处理 Markdown；</li><li>先处理 Markdown 然后再处理 $…$。</li></ol><p>前者一般是 plugin，后者一般就是主题搭配 MathJax 或 Katex 了。但 Markdown 格式和 Latex 公式之间存在冲突：</p><ol><li>“_”（下划线）在 Markdown 里会被转义为斜体；</li><li>“*”（星号）在 Markdown 里被转义为粗体；</li><li>“\”（反斜杠）在 Markdown 里被转义为“\”。</li></ol><p>于是，有些主题带的 MathJax 和 Katex 都无法使用了，书写复杂公式以后会被默认的 Markdown 引擎渲染转义掉。之前写的很多 Markdown 文档其实都没考虑这个问题，包括 <a href="http://typora.io" target="_blank" rel="noopener" title="A Markdown Editor">Typora</a> 生成的 Markdown 文档也没有对 Markdown 里的格式进行特殊处理。于是，很多引擎识别不正常。然后，就把默认的 Markdown 引擎改为 Pandoc 了，配合 MathJax 一切正常。在 package.json 里，把</p><figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">    <span class="attr">"dependencies"</span>: &#123;</span><br><span class="line">        <span class="attr">"hexo-renderer-marked"</span>: <span class="string">"*"</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure><p>中的 <code>hexo-renderer-marked</code> 改为 <code>hexo-renderer-pandoc</code> 即可。</p><p>另外，Katex 对 Latex 公式支持不全，暂时建议不要使用。</p>]]></content>
+    
+    <summary type="html">
+    
+      &lt;p&gt;在 Hexo 博客引擎折腾了一下午数学公式显示。试了几个 Hexo 插件，效果都不是很理想。目前 Hexo 支持 Markdown 写博客，配合 &lt;a href=&quot;http://typora.io&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot; title=&quot;A Markdown Editor&quot;&gt;Typora&lt;/a&gt; 写博客不错，也不用担心格式问题。不过，在 Markdown 写数学公式是一个问题。存在的解决方法是以 $…$ 为区域渲染 Latex 公式，但这种转换方式目前有存在一些问题。&lt;/p&gt;
+    
+    </summary>
+    
+    
+    
+  </entry>
+  
+  <entry>
+    <title>SVM 模型复习</title>
+    <link href="http://zhi.oschina.io/archives/2017/03/12/svm-review.html"/>
+    <id>http://zhi.oschina.io/archives/2017/03/12/svm-review.html</id>
+    <published>2017-03-12T14:49:00.000Z</published>
+    <updated>2020-01-01T05:47:34.279Z</updated>
+    
+    <content type="html"><![CDATA[<p>最近根据周志华的《机器学习》复习了一下 SVM 算法，SVM 确实称得上机器学习的代表算法之一，把涉及的概念整理一下。</p><a id="more"></a><p>首先，从一个二分类器说起。SVM 实际上解决的是一个线性的模型，也就是说，假定存在这么一个表达式：</p><p>$$w^T x + b = 0$$</p><p>能够把数据恰到好处地分割为两部分。即对于样本点 $(x_i, y_i)$ ，有如下不等式成立</p><p>$$<br>\begin{cases}<br>w^T x_i + b \ge +1, &amp; y_i=+1; \<br>w^T x_i + b \le -1, &amp; y_i=-1;<br>\end{cases}<br>$$</p><p>当上述不等式的等号成立的时候，那些样本点 $(x_i, y_i)$ 称为支持向量。而分割平面到支持向量之间的距离为</p><p>$$<br>\gamma = \frac{2}{|| w||}<br>$$</p><p>所谓的“恰到好处”指的是使 $\gamma$ 最大的时候。</p><h2 id="损失函数"><a class="anchor" href="#损失函数">#</a>损失函数</h2><p>在得到了 SVM 的定义以后，可以归纳出 SVM 的优化目标将会分为两部分，即满足最大化分类间隔，以及在这个目的下约束所有分类点都应该满足分类表达式：</p><p>$$<br>\begin{align*}<br>&amp; \max_{w,b} \quad \frac{2}{||w||} \<br>&amp; \begin{array}{r@{\quad}r@{}@{\quad}} s.t. &amp;  y_i ( w^T x_i + b) \ge 1, &amp; i=1,2,3 \end{array} .<br>\end{align*}<br>$$</p><p>上式是一个带约束的最优化问题，采用最优化理论的对偶解法。把优化式转换为</p><p>$$<br>L(w,b,\alpha) = \frac{1}{2}||w||^2 + \sum_{i=1}^m \alpha_i (1 - y_i (w^T x_i + b))<br>$$</p><p>即得到了 SVM 的<strong>损失函数</strong>。</p><h3 id="软间隔以及正则化"><a class="anchor" href="#软间隔以及正则化">#</a>软间隔以及正则化</h3><p>但是现实世界里可能没有那么完美的分类平面，噪声的存在使得这个世界不是非黑即白。为了解决噪声，我们要允许数据犯错，则优化目标转化为</p><p>$$<br>\min_{w,b} \frac{1}{2}||w||^2 + C \sum_{i=1}^m \ell_{0/1}(y_i (w^T x_i + b) - 1)<br>$$</p><p>其中</p><p>$$<br>\ell_{0/1}(z) = \begin{cases} 1, &amp; \text{if} \quad z &gt; 0 \ 0, &amp; \text{otherwise.} \end{cases}<br>$$</p><p>容易看出，当$C$ 趋近无穷大的时候，要求 $\mathcal{l}(z)=0$ 恒成立，否则将不能被优化，此时对犯错的风险降至 0 。反之， $C$ 越接近 0 则越容许分类器犯错。</p><p>然而，$\ell_{0/1}(z)$ 是一个分段函数，意味着该函数不能直接求导，因此，有很多函数试图替代这个函数，例如：</p><p>$$<br>\ell_{log}(z) = \log (1 + \exp(-z))<br>$$</p><p>当把上式替代 $\ell_{0/1}(z)$ 后，那么损失函数变为</p><p>$$<br>\begin{align*}<br>&amp; \frac{1}{2}||w||^2 + C \sum_{i=1}^m \log(1 + \exp(1 - y_i (w^T x_i + b))) \<br>\rightarrow \quad &amp; \sum_{i=1}^m \log(1 + \exp(1 - y_i (w^T x_i + b))) + C  \frac{1}{2}||w||^2<br>\end{align*}<br>$$</p><p>看着是不是很像逻辑回归？比逻辑回归多的部分，就是多加了个 $w$ 项。在逻辑回归里，也可以做类似的优化，称为正则化项，依据就是当参数越少，泛化能力越好。当然，在 SVM 中，实际上就是软间隔的最大化了。由此，两个看起来不相关的模型在这里巧合地相互解释。</p><h3 id="结构风险与经验风险"><a class="anchor" href="#结构风险与经验风险">#</a>结构风险与经验风险</h3><p>从结构和经验两部分来看，把上述损失函数分拆，可以得到如下两部分：</p><p>$$<br>\underbrace{\frac{1}{2} ||w||^2} _ {结构风险} + \overbrace{C \sum_{i=1}^m \ell(y_i(w^T x_i + b) - 1)}^{经验风险}<br>$$</p><p>每一个机器学习的目标函数可能都会包括这两部分，即结构风险和经验风险。这两者在 SVM 上表现得尤为显著。其中，第一部分结构风险，就形象地表达了 SVM 模型的平面结构，它的最小化偏向使得分类平面向着支持向量间隔最大的方向发展。而经验风险在引入软间隔的时候就说明了，就是是否允许数据犯错，对数据噪声的容忍程度。换句话说，以多大的程度信任给定的数据。</p><p>但是为什么说是风险呢？数据挖掘的场景下，原始数据是“肮脏”的，不真实的。数据有一些偶然和随机的成分，即使是今天所谓的大数据场景下，获得的数据也是不全面的。由于仪器的误差，有些数据可能存在一些噪声，使得不是该类的样本被测得在该类下，如果一味拟合过去的数据就会误导未来的预测。这就是所谓经验风险。另一方面，模型越复杂对数据的解释能力就越强，例如二次函数生成的数据可以被四次甚至更高次的模型解释，但是两者却不会再所有点上重合。显然，二次模型产生的点应该用二次模型来解读，模型过于复杂，反而出现所谓过度解读的问题，对未出现过的点解释错误。这就是所谓的结构风险。</p><h2 id="核函数方法"><a class="anchor" href="#核函数方法">#</a>核函数方法</h2><p>核函数是 SVM 中的一个重要优化手段，但其他分类器也可能实现核函数的优化。核方法说的是把样本的特征提升到一定的维度上，使得在当前维不可分的点在高维空间下可分。但是 SVM 中的核函数却不是指通过该函数提升到高维空间，而是算法实现上的一个细节。</p><p>注意到损失函数中，</p><p>$$<br>w = \sum_{i=1}^m \alpha_i y_i x_i^T<br>$$</p><p>也就是说，求得的分类平面是</p><p>$$<br>\sum_{i=1}^m \alpha_i y_i x_i^T x + b<br>$$</p><p>如果通过函数 $\phi(x)$ 把 $x$ 提升到一个新的高维空间，那么，分类平面将变为</p><p>$$<br>\sum_{i=1}^m \alpha_i y_i \phi(x_i)^T \phi(x) + b<br>$$</p><p>实际上需要计算的是 $\phi(x_i)^T\phi(x)$ 而不是 $\phi(x)$，因此，核函数就是说</p><p>$$<br>\kappa(x, y)=\phi(x)^T \phi(y)<br>$$</p><p>的过程，而非把样本特征向量转换到高维的函数。</p>]]></content>
+    
+    <summary type="html">
+    
+      &lt;p&gt;最近根据周志华的《机器学习》复习了一下 SVM 算法，SVM 确实称得上机器学习的代表算法之一，把涉及的概念整理一下。&lt;/p&gt;
+    
+    </summary>
+    
+    
+    
+      <category term="数据挖掘" scheme="http://zhi.oschina.io/tags/%E6%95%B0%E6%8D%AE%E6%8C%96%E6%8E%98/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>KVM 以及桥接网络配置</title>
+    <link href="http://zhi.oschina.io/archives/2016/10/30/cloud-kvm-network.html"/>
+    <id>http://zhi.oschina.io/archives/2016/10/30/cloud-kvm-network.html</id>
+    <published>2016-10-30T07:21:24.000Z</published>
+    <updated>2020-01-01T04:50:37.356Z</updated>
+    
+    <content type="html"><![CDATA[<p>最近在折腾 KVM 以及虚拟化，KVM安装后默认的网络链接方式是NAT，此时虚拟机虽然可以与本机通信，但虚拟机的IP地址是一个私有地址，本机外的网络无法访问该虚拟机。</p><a id="more"></a><h3 id="虚拟机网络连接的方式"><a class="anchor" href="#虚拟机网络连接的方式">#</a>虚拟机网络连接的方式</h3><p>接触过 VirtualBox、VMware 的话，对虚拟机网络配置肯定不会陌生。虚拟机网络连接常见的有 3 种方式：</p><ol><li>NAT 网络：即内部地址转换，相当于从物理网卡外接了一个虚拟的路由，然后所有虚拟机都连接到该“路由器”上，虚拟机可以借助这个路由器访问到外面的网络，但外面的网络却无法访问，因为虚拟机的地址只是路由器上唯一的，出了路由器就不再唯一了。</li><li>桥接网络：也叫物理设备共享，相当于虚拟了一个和服务网卡一样的网卡，这个虚拟网卡和物理网卡是平行的关系，并且虚拟机共用物理网卡额资源。这样，虚拟机能够接入外部网络，不受物理机的限制了。</li><li>Host-Only 网络：与 NAT 类似，但是比 NAT 更封闭，只有物理机能够访问该虚拟机，其他虚拟机也不能访问。</li></ol><p>一般安装 KVM 后都会安装 bridge-util，这是 Linux 下用于桥接网卡的工具集，通过该工具集可以虚拟出一个新的网卡。其中， bridge-util 安装后会自动建立一个 NAT 网络，即 virbr0 网卡，如果虚拟机连接到该网卡上，则连接到 NAT 网络了。而下文主要介绍建立桥接网络的做法。</p><h3 id="桥接网络的建立"><a class="anchor" href="#桥接网络的建立">#</a>桥接网络的建立</h3><ol><li><p>新建虚拟网桥</p><p>编辑 /etc/network/interfaces 文件，根据以下两种情况的一种添加如下内容：</p><ol><li><p>假设外部网络是一个 DHCP 动态分配 IP 的网络环境，并且网卡名字为 eth0 ：</p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">auto br0</span><br><span class="line">iface br0 inet dhcp</span><br><span class="line">bridge_ports eth0</span><br><span class="line">bridge_stp off</span><br><span class="line">bridge_fd 0</span><br></pre></td></tr></table></figure><p>其中第一句话建立了虚拟网桥 br0，并且该接口使用 DHCP 分配 IP 等信息，后三句是配置网桥相关的属性。bridge_ports 配置了该网桥连接到的虚拟网卡 eth0，并关闭 <a href="http://baike.baidu.com/link?url=wa8X56FKMcQ00SxYDZZmEFvetw-FI83bKa3pnHs62KLbGWEGz0rMKPM6xGY0aW0qRYpUc7cQaui3sCxkDXwJ8IrjgVd4rbZaqOfVnDmv4wO" target="_blank" rel="noopener">stp（生成树协议）</a>，设置 fd（forwarding delay，转发延迟） 为 0 。</p></li><li><p>假设外部网络是静态分配的网络，并且网卡名字为 eth0 ：</p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">auto br0</span><br><span class="line">iface br0 inet static</span><br><span class="line">address 192.168.200.130</span><br><span class="line">network 192.168.200.0</span><br><span class="line">netmask 255.255.255.0</span><br><span class="line">broadcast 192.168.200.255</span><br><span class="line">gateway 192.168.200.1</span><br><span class="line">dns-nameservers 8.8.8.8</span><br><span class="line">bridge_ports eth0</span><br><span class="line">bridge_stp off</span><br><span class="line">bridge_fd 0</span><br><span class="line">bridge_maxwait 0</span><br></pre></td></tr></table></figure><p>需要在文件中编辑 address/network/netmask/broadcast/gateway/dsn-nameservers 等内容。</p></li></ol></li><li><p>重新启动网络服务（以 Ubuntu 为例）：</p><figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">service networking restart</span><br></pre></td></tr></table></figure></li><li><p>为 KVM 虚拟机配置网络，编辑虚拟机配置文件：</p><figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">virsh edit VM_ID</span><br></pre></td></tr></table></figure><p>文件示意如下：</p><figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">interface</span> <span class="attr">type</span>=<span class="string">'...'</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">mac</span> <span class="attr">address</span>=<span class="string">'...'</span>/&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">source</span> <span class="attr">bridge</span>=<span class="string">'...'</span>/&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">model</span> <span class="attr">type</span>=<span class="string">'rtl8139'</span>/&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">address</span> <span class="attr">type</span>=<span class="string">'pci'</span> <span class="attr">domain</span>=<span class="string">'0x0000'</span> <span class="attr">bus</span>=<span class="string">'0x00'</span> <span class="attr">slot</span>=<span class="string">'0x03'</span> <span class="attr">function</span>=<span class="string">'0x0'</span>/&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">interface</span>&gt;</span></span><br></pre></td></tr></table></figure><p>把其中 type 改为 bridge，并且 source 标签中的 bridge 属性改为 br0 。</p><p>重启虚拟机。</p></li></ol>]]></content>
+    
+    <summary type="html">
+    
+      &lt;p&gt;最近在折腾 KVM 以及虚拟化，KVM安装后默认的网络链接方式是NAT，此时虚拟机虽然可以与本机通信，但虚拟机的IP地址是一个私有地址，本机外的网络无法访问该虚拟机。&lt;/p&gt;
+    
+    </summary>
+    
+    
+    
+      <category term="云计算" scheme="http://zhi.oschina.io/tags/%E4%BA%91%E8%AE%A1%E7%AE%97/"/>
+    
+      <category term="虚拟化" scheme="http://zhi.oschina.io/tags/%E8%99%9A%E6%8B%9F%E5%8C%96/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>KVM 虚拟机配置</title>
+    <link href="http://zhi.oschina.io/archives/2016/10/30/cloud-kvm-setup.html"/>
+    <id>http://zhi.oschina.io/archives/2016/10/30/cloud-kvm-setup.html</id>
+    <published>2016-10-30T06:31:40.000Z</published>
+    <updated>2020-01-01T04:50:51.580Z</updated>
+    
+    <content type="html"><![CDATA[<p>KVM 是一种全虚拟化技术，由 Linux 内核自身集成，市面上很多云服务提供商都是用该技术进行资源的虚拟化，也是 OpenStack 等云计算架构的虚拟化基础。很不博客列出了 KVM 的安装和使用过程，但是都不够具体，本博客在总结网络博客的基础上，收集整理自己遇到的坑，以方便大家做参考。</p><a id="more"></a><h3 id="安装准备"><a class="anchor" href="#安装准备">#</a>安装准备</h3><p>确定物理服务器支持虚拟化技术：</p><figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">grep vmx /proc/cpuinfo <span class="comment"># Intel 系列</span></span><br><span class="line">grep svm /proc/cpuinfo <span class="comment"># AMD 系列</span></span><br></pre></td></tr></table></figure><p>需要安装 Qemu、KVM 等组件：</p><figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo apt-get install kvm qemu qemu-kvm libvirt-bin</span><br></pre></td></tr></table></figure><p>如果需要安装图形界面，还可以安装：</p><figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo apt-get install virt-manager</span><br></pre></td></tr></table></figure><h3 id="安装"><a class="anchor" href="#安装">#</a>安装</h3><p>进行以下操作时，请注意当前用户拥有高级的读写权限。用 virsh 创建的虚拟机，一般会赋予 kvm 用户组读写的权限，因此，可以把当前操作用户加入到 kvm 组里。更简单的办法是使用 root 来执行以下操作。</p><ol><li><p>新建硬盘镜像：</p><figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">qemu-img create -f qcow2 /var/lib/libvirt/images/test.qcow2 20G</span><br></pre></td></tr></table></figure></li><li><p>在服务器上准备好 OS 的镜像文件，例如从 <a href="http://mirrors.ustc.edu.cn" target="_blank" rel="noopener">http://mirrors.ustc.edu.cn</a> 上下载。</p></li><li><p>使用 virt-instal 或 virsh 进行远程安装</p><ol><li><p>使用命令行的安装方式</p><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">virt-install --virt-type kvm --name=<span class="built_in">test</span>--ram=4096 --vcpus=2 \</span><br><span class="line">--os-type=linux \</span><br><span class="line">--location=/root/rhel-server-7.0-x86_64-dvd.iso \</span><br><span class="line">--disk path=/var/lib/libvirt/images/test.qcow2,format=qcow2 \</span><br><span class="line">--network bridge:virbr0 \</span><br><span class="line">--graphics none \</span><br><span class="line">--extra-args=<span class="string">'console=tty0 console=ttyS0,115200n8 serial'</span></span><br></pre></td></tr></table></figure></li><li><p>使用 VNC 的方式进行安装：</p><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">virt-install --virt-type kvm --name=<span class="built_in">test</span> --ram=1024 --vcpus=1 \</span><br><span class="line">--os-type=linux \</span><br><span class="line">--location=/root/rhel-server-7.0-x86_64-dvd.iso \</span><br><span class="line">--disk /var/lib/libvirt/images/test.qcow2,format=qcow2 \</span><br><span class="line">--network bridge:brx \</span><br><span class="line">--graphics vnc,password=123456</span><br></pre></td></tr></table></figure><p>显示 VNC 端口</p><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">virsh vncdisplay <span class="built_in">test</span></span><br></pre></td></tr></table></figure><p>网上也有人提到 /etc/libvirt/qemu.conf 中的需要解锁</p><figure class="highlight ini"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># vnc_listen="0.0.0.0"</span></span><br></pre></td></tr></table></figure><p>然后重启 libvirtd 服务</p><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">systemctl restart libvirtd</span><br></pre></td></tr></table></figure></li><li><p>使用 virsh 来创建虚拟机：</p><p>创建虚拟机描述文件，例如 ubuntu.xml ，内容如下：</p><figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">domain</span> <span class="attr">type</span>=<span class="string">'kvm'</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">name</span>&gt;</span>ubuntu2<span class="tag">&lt;/<span class="name">name</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">memory</span>&gt;</span>1048576<span class="tag">&lt;/<span class="name">memory</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">vcpu</span>&gt;</span>1<span class="tag">&lt;/<span class="name">vcpu</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">os</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">type</span> <span class="attr">arch</span>=<span class="string">'x86_64'</span> <span class="attr">machine</span>=<span class="string">'pc'</span>&gt;</span>hvm<span class="tag">&lt;/<span class="name">type</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">boot</span> <span class="attr">dev</span>=<span class="string">'cdrom'</span>/&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">boot</span> <span class="attr">dev</span>=<span class="string">'hd'</span>/&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">os</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">features</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">acpi</span>/&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">apic</span>/&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">pae</span>/&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">features</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">clock</span> <span class="attr">offset</span> = <span class="string">'localtime'</span>/&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">on_poweroff</span>&gt;</span>destroy<span class="tag">&lt;/<span class="name">on_poweroff</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">on_reboot</span>&gt;</span>restart<span class="tag">&lt;/<span class="name">on_reboot</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">on_crash</span>&gt;</span>destroy<span class="tag">&lt;/<span class="name">on_crash</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">devices</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">emulator</span>&gt;</span>/usr/bin/kvm<span class="tag">&lt;/<span class="name">emulator</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">disk</span> <span class="attr">type</span>=<span class="string">'file'</span> <span class="attr">device</span>=<span class="string">'disk'</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">driver</span> <span class="attr">name</span>=<span class="string">'qemu'</span> <span class="attr">type</span>=<span class="string">'qcow2'</span>/&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">source</span> <span class="attr">file</span>=<span class="string">'/home/zhi/qemu/ubuntu2.img'</span>/&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">target</span> <span class="attr">dev</span>=<span class="string">'hda'</span> <span class="attr">bus</span>=<span class="string">'ide'</span>/&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">disk</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">disk</span> <span class="attr">type</span>=<span class="string">'file'</span> <span class="attr">device</span>=<span class="string">'cdrom'</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">source</span> <span class="attr">file</span>=<span class="string">'/home/zhi/img/ubuntu-16.10-server-amd64.iso'</span>/&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">target</span> <span class="attr">dev</span>=<span class="string">'hdb'</span> <span class="attr">bus</span>=<span class="string">'ide'</span>/&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">disk</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">interface</span> <span class="attr">type</span>=<span class="string">'bridge'</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">source</span> <span class="attr">bridge</span>=<span class="string">'virbr0'</span>/&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">interface</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">input</span> <span class="attr">type</span>=<span class="string">'tablet'</span> <span class="attr">bus</span>=<span class="string">'usb'</span>/&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">input</span> <span class="attr">type</span>=<span class="string">'mouse'</span> <span class="attr">bus</span>=<span class="string">'ps2'</span>/&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">graphics</span> <span class="attr">type</span> =<span class="string">'vnc'</span> <span class="attr">port</span>=<span class="string">'-1'</span> <span class="attr">listen</span>=<span class="string">'0.0.0.0'</span> <span class="attr">keymap</span>=<span class="string">'en-us'</span>/&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">devices</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">domain</span>&gt;</span></span><br></pre></td></tr></table></figure><p>其中需要注意编辑 device=‘cdrom’/device=‘disk’/interface 这几个标签的内容。然后执行</p><figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">virsh define ubuntu.xml</span><br></pre></td></tr></table></figure><p>即启动安装过程，可以用 VNC Viewer 进行远程安装。</p></li></ol><p>注：以上 3 个步骤选择一种进行操作即可，其作用是等价的。其中前两种需要安装 virtinst 工具。</p></li><li><p>如果是通过 virbr0 这个网卡进行操作的话（默认 virbr0 是 NAT 并使用 dnsmaq 来分配 IP 地址），可以通过以下命令查看生成的虚拟机的 IP 地址：</p><figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cat /var/lib/libvirt/dnsmasq/virbr0.status</span><br></pre></td></tr></table></figure><p>注意其中的 hostname 对应的 IP 地址。</p></li></ol><h3 id="启动"><a class="anchor" href="#启动">#</a>启动</h3><p>可以使用 virsh 来管理虚拟机，其中比较常见的命令有</p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">virsh start    VM_ID  # 启动虚拟机</span><br><span class="line">      shutdown VM_ID  # 关闭虚拟机</span><br><span class="line">      destroy  VM_ID  # 强制关闭虚拟机</span><br><span class="line">      edit     VM_ID  # 更改虚拟机的配置</span><br></pre></td></tr></table></figure><p>另外一个值得一提的功能是在线迁移（live migration）。</p><figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">virsh migrate  VM_ID  DEST_URI --live</span><br></pre></td></tr></table></figure><p>需要注意，在线迁移需要对方 QEMU 支持，最好在两个相同版本的 QEMU 服务器之间迁移，否则容易出错。其中 DEST_URI 的写法是 qemu+ssh://IP_ADDR/system ，详细文档见 <code>virsh migrate --help</code>。</p><h3 id="常见问题"><a class="anchor" href="#常见问题">#</a>常见问题</h3><ol><li><p>error: internal error Attempt to migrate guest to the same host 00020003-0004-0005-0006-000700080009</p><p>应该是服务器提供商的问题，重新生成一下 UUID ：</p><figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sed -i <span class="string">"/#host_uuid/ahost_uuid = \"`uuidgen`\""</span> /etc/libvirt/libvirtd.conf</span><br></pre></td></tr></table></figure><p>然后重启 libvirtd 服务：</p><figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">service libvirt-bin restart</span><br></pre></td></tr></table></figure></li><li><p>error: internal error: process exited while connecting to monitor: qemu-system-x86_64: -machine pc-i440fx-2.2,accel=kvm,usb=off: Unsupported machine type</p><p>这个错误在动态迁移（在线迁移，live migration）的时候会遇到，接收方的 QEMU 版本较低，不支持该版本的虚拟机。</p></li><li><p>Cannot recv data: Value too large for defined data type</p><p>很可能是因为调用的某个程序、某个库出现错误了，因为这个错误很广泛。我当时遇到这个问题是因为 ssh 的钥匙没配置好。建议重新生成秘钥。</p></li></ol>]]></content>
+    
+    <summary type="html">
+    
+      &lt;p&gt;KVM 是一种全虚拟化技术，由 Linux 内核自身集成，市面上很多云服务提供商都是用该技术进行资源的虚拟化，也是 OpenStack 等云计算架构的虚拟化基础。很不博客列出了 KVM 的安装和使用过程，但是都不够具体，本博客在总结网络博客的基础上，收集整理自己遇到的坑，以方便大家做参考。&lt;/p&gt;
+    
+    </summary>
+    
+    
+    
+      <category term="云计算" scheme="http://zhi.oschina.io/tags/%E4%BA%91%E8%AE%A1%E7%AE%97/"/>
+    
+      <category term="虚拟化" scheme="http://zhi.oschina.io/tags/%E8%99%9A%E6%8B%9F%E5%8C%96/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>记一次机器学习学术报告</title>
+    <link href="http://zhi.oschina.io/archives/2016/08/11/machine-learning-report-zh.html"/>
+    <id>http://zhi.oschina.io/archives/2016/08/11/machine-learning-report-zh.html</id>
+    <published>2016-08-11T11:54:33.000Z</published>
+    <updated>2020-01-01T04:50:37.364Z</updated>
+    
+    <content type="html"><![CDATA[<p>在腾讯大厦听了周志华老师团队的报告，主要讲机器学习的下一步研究内容。其中有一些比较个人觉得挺有趣的名词。</p><a id="more"></a><ol><li><p>机器学习的鲁棒性（robustness of machine learning）：机器学习曾经只是为了辅助人类决策，而随着应用深入，人们对机器学习的要求越来越高，甚至要好于人类。在这个情况下，机器学习对算法的鲁棒性有了更高的要求。是一个值得深入的研究方向。这里还顺带批评了一下深度学习在处理问题上的一些非鲁棒性的问题。</p></li><li><p>多标记学习的细节（multi-label learning）：人对事物的标签是含糊的，这体现在标记的多义性和非互斥性，如何对标记的关联性、错误性进行机器学习？传统的方法是 one-vs-rest 的方式进行二分类编码，训练N个分类器，而实际上这样做忽略了标签之间的关联性，还导致标记不平衡的问题。</p></li><li><p>标记分布学习应用（label distribution learning）：这部分是我比较感兴趣的，感觉是一种贝叶斯的方法看待问题。生活中有很多事情都不是绝对的，他们可能或多或少属于某一个类别。与其学习标签，不如学习标记分布。</p><p>另外举了3个和标记分布有关的应用：因为人们猎奇的心里特点，电影评分的非正态分布比平均分的预测更有参考价值——争议大的可能对票房更有帮助。利用心理学家对标记的先验分布在表情的情感分析得出表情隐含的意义。这让我想起以前做的几个分类应用，例如公交线路选乘、购物行为预测、点击预测等，负样本实际上都是模糊的。不买也可能是对方根本没看到而不是不感兴趣。</p></li><li><p>半监督学习和图学习（semi-supervise learning）：如果判断事物的标记很困难的时候，如何进行监督学习？利用无标记样本是更廉价的方法，但是也会导致学习偏差的问题，加入了无标记的样本，可能还会导致分类正确性的降低。</p></li></ol>]]></content>
+    
+    <summary type="html">
+    
+      &lt;p&gt;在腾讯大厦听了周志华老师团队的报告，主要讲机器学习的下一步研究内容。其中有一些比较个人觉得挺有趣的名词。&lt;/p&gt;
+    
+    </summary>
+    
+    
+    
+      <category term="数据挖掘" scheme="http://zhi.oschina.io/tags/%E6%95%B0%E6%8D%AE%E6%8C%96%E6%8E%98/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>Scala 的构建工具 SBT 镜像设置</title>
+    <link href="http://zhi.oschina.io/archives/2016/07/31/sbt-repositories.html"/>
+    <id>http://zhi.oschina.io/archives/2016/07/31/sbt-repositories.html</id>
+    <published>2016-07-31T01:02:35.000Z</published>
+    <updated>2020-01-01T04:50:37.364Z</updated>
+    
+    <content type="html"><![CDATA[<p>SBT 使用内置的 Ivy 来解释软件库的依赖关系，虽然因为 Ivy 支持 Maven 而支持 Maven。但和 Gradle 之类的构建工具不同， SBT 并不能继承 Maven 的设置。因此，针对 SBT 的镜像要重新设置。</p><a id="more"></a><p>而 SBT 的软件库镜像相对 Maven 的设置来说简单很多，只需要编辑 <code>~/.sbt/repositories</code> 文件，加入</p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">[repositories]</span><br><span class="line">  local</span><br><span class="line">  aliyun: http:&#x2F;&#x2F;maven.aliyun.com&#x2F;nexus&#x2F;content&#x2F;groups&#x2F;public&#x2F;</span><br><span class="line">  central: http:&#x2F;&#x2F;repo1.maven.org&#x2F;maven2&#x2F;</span><br><span class="line">  typesafe: http:&#x2F;&#x2F;repo.typesafe.com&#x2F;typesafe&#x2F;ivy-releases&#x2F;, [organization]&#x2F;[module]&#x2F;[revision]&#x2F;[type]s&#x2F;[artifact](-[classifier]).[ext], bootOnly</span><br></pre></td></tr></table></figure><p>以上配置文件解释顺序是：本地→阿里云镜像→Maven主镜像。如果需要添加公司的 maven 镜像，可以按照 key: value 的形式添加，key 的命名没有要求（暂时没注意到，但是最好也不要用什么特殊符号吧 😂）。同时，安利一下<a href="http://maven.aliyun.com" target="_blank" rel="noopener">阿里云的 Maven 镜像</a>，国内访问很快。</p><blockquote><p>2016年9月27日更新：</p><p>在 <code>repositories</code> 文件中应该至少加入如下仓库：</p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">typesafe: http:&#x2F;&#x2F;repo.typesafe.com&#x2F;typesafe&#x2F;ivy-releases&#x2F;, [organization]&#x2F;[module]&#x2F;[revision]&#x2F;[type]s&#x2F;[artifact](-[classifier]).[ext], bootOnly</span><br></pre></td></tr></table></figure><p>国内的镜像貌似都没有把 sbt 的新版本包括进去。因此，如果公司内网不能访问，则需要通过 Proxifier 等全局代理工具至少把 sbt 下载下来，然后其他的依赖关系通过国内镜像也可以顺利地下载了。</p></blockquote>]]></content>
+    
+    <summary type="html">
+    
+      &lt;p&gt;SBT 使用内置的 Ivy 来解释软件库的依赖关系，虽然因为 Ivy 支持 Maven 而支持 Maven。但和 Gradle 之类的构建工具不同， SBT 并不能继承 Maven 的设置。因此，针对 SBT 的镜像要重新设置。&lt;/p&gt;
+    
+    </summary>
+    
+    
+    
+      <category term="开发工具" scheme="http://zhi.oschina.io/tags/%E5%BC%80%E5%8F%91%E5%B7%A5%E5%85%B7/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>挖掘频繁序列的非正式调研</title>
+    <link href="http://zhi.oschina.io/archives/2016/07/07/mining-frequent-sequences.html"/>
+    <id>http://zhi.oschina.io/archives/2016/07/07/mining-frequent-sequences.html</id>
+    <published>2016-07-07T07:15:03.000Z</published>
+    <updated>2020-01-01T04:50:37.364Z</updated>
+    
+    <content type="html"><![CDATA[<p>频繁序列挖掘（sequential pattern mining）是数据挖掘里的热门话题之一，它的目标是挖掘数据里潜在的有价值的时间序列关系。频繁序列挖掘与时间序列挖掘相似，但不同的是频繁序列挖掘一般假设挖掘的项目是离散的，因而和时间序列的连续数据分列为两个不同的话题。由于频繁序列挖掘是从半结构化的序列中挖掘有价值的序列，也被归为结构化数据挖掘（structured data mining）的范畴。</p><a id="more"></a><p>频繁序列挖掘是从频繁项集（frequent pattern mining）(可以参考之前的<a href="/tags/%E9%A2%91%E7%B9%81%E9%A1%B9%E9%9B%86%E6%8C%96%E6%8E%98">博文</a>)、关联规则（association rule）挖掘中引申出来的。频繁项集挖掘关注的模式是项目（itemset）的共现性（co-ocurrence）；而关联规则关注的模式是从频繁项集中提取有意思的项集推导模式，例如 Itemset A → Itemset B。频繁序列挖掘则是从关联规则的基础上，根据项集发生的先后关系，推导项集之间的时间发展关系。</p><p>频繁序列挖掘根据数据中的项目单位，可以分为频繁项集序列挖掘和字符串序列挖掘。其中频繁项集序列即在关联规则的基础上添加时序得出项目集之间在时间先后上的推导关系，而字符串挖掘则是项目集挖掘的一化版本。每个项集只有一个项目，可以用一个字符来表示。在频繁项集序列挖掘中，可以通过映射到单实体的方法把项集当作一个单一的实体来处理，退化为字符串挖掘。</p><p>根据比较早的高引用文献来看，频繁项集相关的挖掘已经发展了至少 25 年历史了。接触这个话题是在实习的时候，需要实现频繁项集、频繁序列挖掘算法，所以最开始主要关注算法性能的改进。至今频繁模式挖掘的性能改进仍然是热门的话题之一。因为列举所有的频繁序列，是一个排列组合问题。暴力算法穷举整个搜索空间需要 O(n!) 的复杂度。为了降低算法的复杂度，研究社区陆续提出了 Apriori、SPADE、FreeSpan、PrefixSpan 之类的算法。对于序列挖掘，也扩展出了 GSP（基于 Apriori）、PrefixSpan（基于 FP-Growth）等。</p><p>分层挖掘的 Apriori 系算法：</p><blockquote><ol><li>根据时间整理项集序列，得到 &lt;uid, &lt;itemsets…&gt;&gt; 形式；</li><li>找出频繁 1 序列，并展开项集，然后为所有项（集）映射一个编号，例如 (1, 2) 会被拆分为 (1), (2), (1, 2) 映射为 3 个单独的项目，最后删除支持度低于阈值的非频繁的项目；</li><li>对原始数据进行转化，把所有序列里的项集替换为第 2 步中抽取的项目，如果序列里包含删除的非频繁项目，则删除该交易；</li><li>从上一层生成的 k 序列生成候选的 k+1 序列，然后遍历数据库，确定候选的 k+1 序列是否频繁，并<strong>重复这个过程，直到 k+1 层候选序列中不存在频繁序列</strong>；</li><li>删除不需要的子序列，例如 a→b→c 包含的 a→b 和 a→c 都被删除，保留最长的序列 a→b→c 。</li></ol><p><em>Agrawal R, Srikant R. Mining sequential patterns[C]// icde. IEEE Computer Society, 1995:3-14.</em></p></blockquote><p>利用前缀递归的 PrefixSpan 算法：</p><blockquote><ol><li>统计 1-序列 ，删除支持度小于阈值的非频繁项；</li><li>利用 1-序列 按照如下规则生成投影数据库（后缀数据库）：<ol><li>对于每一个 1’-序列 元素，找到序列数据库中包含它自己以及频率比它高的元素的序列；</li><li>对于每个元素生成的投影数据库，重复 FreeSpan 中的过程，直到投影数据库为空。</li></ol></li><li>在生成投影数据库过程中，投影数据库前缀加上投影数据库中的频繁项组成频繁序列。</li></ol><p><em>Pei J, Han J, Mortazaviasl B, et al. PrefixSpan: Mining Sequential Patterns Efficiently by Prefix-Projected Pattern Growth[C]// International Conference on Data Engineering. IEEE Computer Society, 2001:215-224.</em></p></blockquote><p>到 PrefixSpan 以后，基本上没出现更高效的算法了。现行序列挖掘的算法，基本上都是这两类算法的变形，例如挖掘长序列的 CloSpan 算法。而 PrefixSpan 至今仍然是较流行的算法。</p><p>除了对算法本身的研究，在应用方面，序列模式挖掘也十分多。一些显而易见的模式，例如吃饭用筷子、买了一本书的下册很可能买上册，挖掘起来其实用处不大；一些偶然共现，由于两本热门的书在同一时期卖而成了一种模式，意义也不大。另外，对于不同的人来说，挖掘的意义也可能不一样。这个时候，从发掘模式的“频繁”引向发现“有趣”。</p><p>对模式中的 Item 加入分类（taxonomy）的限制：</p><blockquote><p>可以扩展使生成的模式不包含相同类型的模式或者包含更抽象的“上级”概念的模式。这种模式主要应用于有关联的特征之间的模式挖掘。例如，挖掘地理位置和时间的关系，那么时间和时间之间的关联是不必要的，因此不需要挖掘这类型的模式。又例如商品之间的关联，苹果和李子都是水果，可以挖掘它们上级“水果”概念和其他概念的关联关系。</p><p>参考：<em>Srikant R, Agrawal R. Mining sequential patterns: Generalizations and performance improvements[M]// Advances in Database Technology — EDBT '96. Springer Berlin Heidelberg, 1996:1-17.</em></p></blockquote><p>为项目加入效用（utility）：</p><blockquote><p>如果我们把模式挖掘看做一个搜索问题，从一大堆模式中发现我们感兴趣的模式。由于信息过载，我们可能关注有限的模式，因此，每种模式都应该有一个权重，使得重要的模式被我们所了解。这里的权值称为效用（utility），标示这个模式有多大可能是有趣的。对于不同的场景来说，这种方法可以有不同的应用。</p><p>参考：<em>Ahmed C F. A Novel Approach for Mining High-Utility Sequential Patterns in Sequence Databases[J]. Etri Journal, 2010, 32(5):676-686.</em></p></blockquote><p>通过用户的反馈进行学习：</p><blockquote><p>在效用的基础上，考虑到每个人给予模式的重要程度是不一样的，那么如何判别用户的兴趣点，从而在频繁模式中挖掘相关的兴趣，也是一个很有趣的话题。为此，需要利用用户的初始兴趣分布。那么如何得到初始兴趣分布估计呢？一种方法是利用用户的反馈进行拟合……</p><p>参考：<em>Xin D, Shen X, Mei Q, et al. Discovering interesting patterns through user’s interactive feedback[C]// ACM SIGKDD International Conference on Knowledge Discovery and Data Mining. ACM, 2006:773–778.</em></p></blockquote><p>从相反的角度看，挖掘“稀有”模式：</p><blockquote><p>所谓“稀有”模式指的是出现次数低于某一个阈值的模式（rare patterns、infrequent pattern 或者 non frequent pattern）。在一些场合下，例如一些流程工业上，很多模式往往是出现度很高的，反而有些异常情况偶然出现，而这些异常情况可能导致巨大的经济损失。</p><p>但“稀有”也不仅仅定义于低于某个阈值，毕竟低于某个阈值的模式也太多了。例如对于KDD大会，对于新手来说，对会议上的热门主题感兴趣，但专家可能会对新兴的话题感兴趣。因此，“稀有”模式还和用户的先验知识有关。</p><p>参考：</p><ol><li><em>Li H, Laurent A, Poncelet P. Towards Unexpected Sequential Patterns[J]. Atelier Bases De Donn茅es Inductives Plateforme Afia, 2008.</em></li><li><em>Jaroszewicz S, Scheffer T. Fast discovery of unexpected patterns in data, relative to a Bayesian network[C]// 2005:118-127.</em></li></ol></blockquote><p>对于大部分实际应用来说，当然少不了对序列进行预处理了，然而这些和影响结合相对紧密的方面，好像还没有什么正式的 paper，一般就是从两方面：降噪和删除已知无用组合，或者对序列进行删减。</p>]]></content>
+    
+    <summary type="html">
+    
+      &lt;p&gt;频繁序列挖掘（sequential pattern mining）是数据挖掘里的热门话题之一，它的目标是挖掘数据里潜在的有价值的时间序列关系。频繁序列挖掘与时间序列挖掘相似，但不同的是频繁序列挖掘一般假设挖掘的项目是离散的，因而和时间序列的连续数据分列为两个不同的话题。由于频繁序列挖掘是从半结构化的序列中挖掘有价值的序列，也被归为结构化数据挖掘（structured data mining）的范畴。&lt;/p&gt;
+    
+    </summary>
+    
+    
+    
+      <category term="数据挖掘" scheme="http://zhi.oschina.io/tags/%E6%95%B0%E6%8D%AE%E6%8C%96%E6%8E%98/"/>
+    
+      <category term="频繁模式挖掘" scheme="http://zhi.oschina.io/tags/%E9%A2%91%E7%B9%81%E6%A8%A1%E5%BC%8F%E6%8C%96%E6%8E%98/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>CloudSim 笔记（3）- 仿真过程</title>
+    <link href="http://zhi.oschina.io/archives/2016/07/01/cloudsim-3-simulation.html"/>
+    <id>http://zhi.oschina.io/archives/2016/07/01/cloudsim-3-simulation.html</id>
+    <published>2016-06-30T16:21:57.000Z</published>
+    <updated>2020-01-01T04:50:37.356Z</updated>
+    
+    <content type="html"><![CDATA[<p>CloudSim 的仿真过程是一个相对简单而又有些复杂的过程。简单的地方在于它是对离散事件处理系统的一种抽象，复杂在于这种抽象导致的异步事件处理，难以直接从代码中一目了然地掌控仿真的流程。为了便于描述，把 CloudSim 的模拟层次分为三层：第一层是基于 CloudSim、SimEntity、 SimEvent 构建的离散事件系统，第二层是在 SimEntity 基础上构建 Datacenter 并在 Datacenter 下构建云计算实体模拟系统，第三层是以云计算基础设施上构建的调度模拟系统。</p><a id="more"></a><h2 id="第一层：异步事件处理系统"><a class="anchor" href="#第一层：异步事件处理系统">#</a>第一层：异步事件处理系统</h2><p>对于第一层，我把由 CloudSim、SimEntity、SimEvent 组成的系统为异步事件处理系统。这是由 CloudSim 类的工作原理所决定的。而主要的步骤有三个，控制了仿真的初始化、运行、结束：</p><p>初始化：主要是创建两个实体 CloudSimShutdown 和 CloudInformationService ，添加到实体列表里。</p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">CloudSim.init()</span><br><span class="line">├── CloudSimShutdown [SimEntity]</span><br><span class="line">└── CloudInformationService [SimEntity]</span><br></pre></td></tr></table></figure><p>运行：进行实体的仿真，其过程如下。其中的要点是，每个实体异步执行，并在 <code>run()</code> 方法里进行时钟的同步（让超时的等待，让未来得及运行的补充运行）；其是否同步的请求，是在 SimEntity 的 <code>run()</code> 方法和发出的 <code>SimEvent</code> 来决定的。</p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">CloudSim.startSimulation() [Wait until simulation shutdown]</span><br><span class="line">├── run()</span><br><span class="line">│   ├── &#x2F;&#x2F; loop of simulation</span><br><span class="line">│   │   ├── SimEntity#startEntity() for all</span><br><span class="line">│   │   ├── CloudSim.runClockTick(): break the loop if no future events</span><br><span class="line">│   │   │   ├── SimEntity#run() for all if SimEntity#running</span><br><span class="line">│   │   │   └── CloudSim.processEvent(SimEvent) while SimEvents at the same time</span><br><span class="line">│   │   │       ├── set clock to SimEvent#eventTime()</span><br><span class="line">│   │   │       └── create&#x2F;send&#x2F;hold_done</span><br><span class="line">│   │   └── &#x2F;&#x2F; procedure to terminate at a specific time</span><br><span class="line">│   ├── CloudSim.finishSimulation()</span><br><span class="line">│   └── CloudSim.runStop()</span><br><span class="line">└── &#x2F;&#x2F; reset in order to restart</span><br></pre></td></tr></table></figure><p>结束：结束分为两种情况，如果没有未来的时间，那么 CloudSim 将进入收尾阶段；如果手动终止（abruptTerminate 为真）则直接终止。调用图：</p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">CloudSim.finishSimulation()</span><br><span class="line">├── abruptTerminate?</span><br><span class="line">│   └── SimEntity#run() for all until SimEntity#getState() &#x3D;&#x3D; FINISHED</span><br><span class="line">├── SimEntity#shutdown() for all</span><br><span class="line">└── set all parameters to null.</span><br></pre></td></tr></table></figure><p>这个过程里，已知的仿真实体有 CloudSimShutdown 和 CloudInformationService ，两者的 <code>run()</code> 和 <code>startEntity()</code> 基本上什么都没做。而 CloudInformationService 则通知所有 datacenter 关闭（发送关闭信息号）。实际上，在 datacenter 和 datacenterbroker 默认都不处理这个事件。 <code>run()</code> 方法的默认内容是调用自身的 <code>processEvent()</code> 来处理事件。</p><h2 id="第二层：云基础设施"><a class="anchor" href="#第二层：云基础设施">#</a>第二层：云基础设施</h2><p>对于所归纳的第二层，即云计算实体的模拟系统，实际上就是在前些天发布的文章的实验部分。在我们自己进行云计算资源调度实验的时候，最容易关注的是这一部分，即进行资源实体的定义，然后在主循环里，资源实体根据自身的特性，例如实体机调动虚拟机进行 cloudlet 的处理，cloudlet 自身根据负载模型的定义顺序执行，在经过一定周期以后，随着 cloudlet 执行结束，整个仿真流程结束。在这个过程中，手机 cloudlet 的执行数据，例如负载的变化历史、负载的等待时间、负载的执行时间、负载的完成时间、负载完成的周期、同时运行的负载的数量。即：</p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">Datacenter [SimEntity]</span><br><span class="line">├── DatacenterBroker [SimEntity]</span><br><span class="line">│   ├── CloudSim.addEntity(~)</span><br><span class="line">│   ├── &#x2F;&#x2F; submit VM requests</span><br><span class="line">│   └── &#x2F;&#x2F; submit cloudlet requests</span><br><span class="line">└── CloudSim.addEntity(~)</span><br></pre></td></tr></table></figure><p>这个过程实际上是所说的第三层调度的编写执行，而其中涉及的实体，则是第二层抽象所关注的内容。这里的 <code>Datacenter</code> 和 <code>DatacenterBroker</code> 继承于 <code>SimEntity</code> ，接着 CloudSim 的运行流程进行其他实体的仿真。这个过程主要是由 Datacenter 和 DatacenterBroker 来带动。其中 DatacenterBroker 和 Datacenter 都没有覆盖 <code>run()</code> 方法，而是通过覆盖 <code>processEvent()</code> 来构建自身的方法：Datacenter 负责接受 DatacenterBroker 提交的虚拟机、cloudlet 的分配和调度工作，而 DatacenterBroker 则处理用户负载队列的问题。</p><p>在 Datacenter 这一层的模拟上，主要是根据事件的接收和发送来维持运转。由于是事件驱动的异步系统，因此根据某一条执行线来描述：</p><ul><li>初始化阶段：Datacenter 和 DatacenterBroker 之间会来回传送一些参数，用于感知对方</li><li>运行阶段：DatacenterBroker 会把 cloudlet 通过 CloudSim 底层的事件传递机制提交给 Datacenter 处理<ul><li>Datacenter 通过设定的 VmAllocationPolicy 分配 VM 给 cloudlet</li><li>VM 通过设定的 CloudletScheduler 调度 cloudlet，估计完成执行的时间并延迟发送 VM_DATACENTER_EVENT</li></ul></li><li>结束阶段：当所有事件完成后，调用 CloudSim 的结束清理方法</li></ul><p>在 CloudSim 里，它的仿真过程实际上是快进的。与其根据执行时钟的周期一步步来，CloudSim 内部通过消息的传递接收为根据，在一段很长的时间里，如果只有个别几个变化的事件，CloudSim 会选择按照事件来处理，跳过中途的时间。这样的好处是执行的时间大大减小了；而坏处是，如果控制不当，或者考虑上的失误，仿真的结果很可能和现实相距甚远。</p><h2 id="第三层：应用和实验"><a class="anchor" href="#第三层：应用和实验">#</a>第三层：应用和实验</h2><p>第三层是建立于第二层云计算基础设施上的应用层，在之前的文章中粗略介绍过用法。至于怎么构建一个合理的实验，主要取决于作者为了云计算的某一种评估目标而建立的分析模型。这里没有特别的章法，CloudSim 的作者预留了足够的想象空间。但是，需要注意的是，在 CloudSim 里，像算法调度过程产生的周期消耗、量度算法执行的时间都是依靠分析模型进行时间的仿真模拟。在实际设计仿真实验的时候，要注意到 CloudSim 不仅仅是一个单纯的仿真平台，也是一个带有一定假设的分析仿真模型。合理的分析假设，在 CloudSim 上才能得到合理的结果。</p>]]></content>
+    
+    <summary type="html">
+    
+      &lt;p&gt;CloudSim 的仿真过程是一个相对简单而又有些复杂的过程。简单的地方在于它是对离散事件处理系统的一种抽象，复杂在于这种抽象导致的异步事件处理，难以直接从代码中一目了然地掌控仿真的流程。为了便于描述，把 CloudSim 的模拟层次分为三层：第一层是基于 CloudSim、SimEntity、 SimEvent 构建的离散事件系统，第二层是在 SimEntity 基础上构建 Datacenter 并在 Datacenter 下构建云计算实体模拟系统，第三层是以云计算基础设施上构建的调度模拟系统。&lt;/p&gt;
+    
+    </summary>
+    
+    
+    
+      <category term="云计算" scheme="http://zhi.oschina.io/tags/%E4%BA%91%E8%AE%A1%E7%AE%97/"/>
+    
+      <category term="服务评估" scheme="http://zhi.oschina.io/tags/%E6%9C%8D%E5%8A%A1%E8%AF%84%E4%BC%B0/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>CloudSim 笔记（2）- 能耗节约的虚拟机调度评估</title>
+    <link href="http://zhi.oschina.io/archives/2016/06/24/cloudsim-2-power-provisioning.html"/>
+    <id>http://zhi.oschina.io/archives/2016/06/24/cloudsim-2-power-provisioning.html</id>
+    <published>2016-06-24T12:21:15.000Z</published>
+    <updated>2020-01-01T04:50:37.356Z</updated>
+    
+    <content type="html"><![CDATA[<p>CloudSim 的能耗模块是在 3.0 版本完善的。最早的工作可能在 2011 年到 2012 年之间，论文：</p><blockquote><p>Anton Beloglazov, and Rajkumar Buyya, “<a href="http://dx.doi.org/10.1002/cpe.1867" target="_blank" rel="noopener">Optimal Online Deterministic Algorithms and Adaptive Heuristics for Energy and Performance Efficient Dynamic Consolidation of Virtual Machines in Cloud Data Centers</a>”, Concurrency and Computation: Practice and Experience (CCPE), Volume 24, Issue 13, Pages: 1397-1420, John Wiley &amp; Sons, Ltd, New York, USA, 2012</p></blockquote><a id="more"></a><p>论文主要讨论了能耗和性能之间平衡的最优方法。首先阐述了单机上的 VM 迁移问题，确定单机的最佳迁移时机并应用竞争分析建立一个在线最优算法，然后分析多机动态迁移的问题。分别使用竞争分析说明确定性的 online 最优算法、用平均情况说明非确定性的 online 最优算法。</p><p>相应地支持仿真实验， CloudSim 在核心程序中加入了 <code>org.cloudbus.cloudsim.power</code> 包，即虚拟机能耗仿真的包。其目录结构如下：</p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line">.</span><br><span class="line">├── PowerDatacenter.java</span><br><span class="line">├── PowerDatacenterBroker.java</span><br><span class="line">├── PowerDatacenterNonPowerAware.java</span><br><span class="line">├── PowerHost.java</span><br><span class="line">├── PowerHostUtilizationHistory.java</span><br><span class="line">├── PowerVm.java</span><br><span class="line">├── PowerVmAllocationPolicyAbstract.java</span><br><span class="line">├── PowerVmAllocationPolicyMigrationAbstract.java</span><br><span class="line">├── PowerVmAllocationPolicyMigrationInterQuartileRange.java</span><br><span class="line">├── PowerVmAllocationPolicyMigrationLocalRegression.java</span><br><span class="line">├── PowerVmAllocationPolicyMigrationLocalRegressionRobust.java</span><br><span class="line">├── PowerVmAllocationPolicyMigrationMedianAbsoluteDeviation.java</span><br><span class="line">├── PowerVmAllocationPolicyMigrationStaticThreshold.java</span><br><span class="line">├── PowerVmAllocationPolicySimple.java</span><br><span class="line">├── PowerVmSelectionPolicy.java</span><br><span class="line">├── PowerVmSelectionPolicyMaximumCorrelation.java</span><br><span class="line">├── PowerVmSelectionPolicyMinimumMigrationTime.java</span><br><span class="line">├── PowerVmSelectionPolicyMinimumUtilization.java</span><br><span class="line">├── PowerVmSelectionPolicyRandomSelection.java</span><br><span class="line">├── lists</span><br><span class="line">│   └── PowerVmList.java</span><br><span class="line">└── models</span><br><span class="line">    ├── PowerModel.java</span><br><span class="line">    ├── PowerModelCubic.java</span><br><span class="line">    ├── PowerModelLinear.java</span><br><span class="line">    ├── PowerModelSpecPower.java</span><br><span class="line">    ├── PowerModelSpecPowerHpProLiantMl110G3PentiumD930.java</span><br><span class="line">    ├── PowerModelSpecPowerHpProLiantMl110G4Xeon3040.java</span><br><span class="line">    ├── PowerModelSpecPowerHpProLiantMl110G5Xeon3075.java</span><br><span class="line">    ├── PowerModelSpecPowerIbmX3250XeonX3470.java</span><br><span class="line">    ├── PowerModelSpecPowerIbmX3250XeonX3480.java</span><br><span class="line">    ├── PowerModelSpecPowerIbmX3550XeonX5670.java</span><br><span class="line">    ├── PowerModelSpecPowerIbmX3550XeonX5675.java</span><br><span class="line">    ├── PowerModelSqrt.java</span><br><span class="line">    └── PowerModelSquare.java</span><br></pre></td></tr></table></figure><p>为了支持能耗评估，CloudSim 实际上作出了不少的修改，并采用了一种侵入式的设计，不仅仅局限于 <code>power</code> 包。为了获得性能参数，甚至改变了原来 CloudSim 的事件循环进行了修改。在数据收集方面，放弃了之前 CloudSim 论文发表时候用的 Sensor 类，而是采用在 <code>PowerDatacenter</code> 和 <code>VM</code> 等实体里嵌入数据收集的代码。分解起来有点费劲。</p><p>以下是简要的修改说明：</p><ol><li>实体相关：<ul><li>能耗数据中心（<code>PowerDatacenter</code>）：覆盖了调度更新的算法以支持能耗的计算，包括能耗调度算法的嵌入（见调度策略）、能耗收集计算两方面的更新</li><li>能耗数据中心用户（<code>PowerDatacenterBroker</code>）：在处理出错上提前退出，几乎没更新</li><li>能耗主机（<code>PowerHost</code>、<code>PowerHostUtilizationHistory</code>）：新增能耗模型相关的更新</li><li>能耗虚拟机（<code>PowerVm</code>）：覆盖方法记录 CPU 使用历史</li></ul></li><li>模型：<ul><li>调度策略<ul><li>选择策略（<code>PowerVmSelectionPolicy</code>）：找出给定的 <code>PowerHost</code> 要迁移的虚拟机</li><li>放置策略（<code>PowerVmAllocationPolicyAbstract</code>）：继承自 <code>VmAllocationPolicy</code>，简单实现了分配虚拟机到主机的策略，并在 <code>optimizeAllocation(vmList)</code> 方法中返回主机和虚拟机的优化配对</li></ul></li><li>资源利用率的能耗模型（<code>PowerModel</code>）：主要是根据资源利用率（CPU？）获取能耗</li></ul></li></ol><p>提出的几种算法：</p><ol><li>虚拟机放置（分配）择策略：主要是使用稳定估计量估计主机是否需要过载<ul><li>基础统计量：<code>MigrationInterQuartileRange</code>、<code>MigrationMedianAbsoluteDeviation</code></li><li>回归预测：<code>MigrationLocalRegression</code>、<code>MigrationLocalRegressionRobust</code></li><li>固定阈值判断：<code>MigrationStaticThreshold</code></li><li>不优化（对照实验）：<code>Simple</code></li></ul></li><li>虚拟机选择策略：<ul><li>最大相关性：<code>MaximumCorrelation</code> 选择资源利用率向量的相关性最大的虚拟机进行迁移</li><li>最短迁移时间：<code>MinimumMigrationTime</code> 尽可能近，并且内存尽可能少的虚拟机进行迁移</li><li>最低利用率：<code>MinimumUtilization</code> 选择利用率最低的进行迁移，使性能损失减小</li><li>随机选择（对照实验）：<code>RandomSelection</code></li></ul></li></ol><p>其选择虚拟机的基本依据来自资源利用率和能耗的历史统计量，算法的具体过程可以参考论文。</p><p>对能耗的仿真模型定义在 <code>PowerModel</code>，这个借口只提供一个抽象方法，就是 <code>getPower(double):double</code> 从给定的资源利用率里推导出能耗。估计 CloudSim 的想法是对每个资源都建立一个利用率到能耗的映射，然后能耗是所有资源的累积和：</p><p>$$<br>P = \sum_{u\in U} P_u(u)<br>$$<br>其中的 $P_u(u)$ 即建立的利用率到能耗的映射。对于 CloudSim Power 部分的论文和具体实现来说，只考虑了粗粒度下 CPU 的能耗代表整机能耗，具体的依据来源于</p><blockquote><p>Kusic D, Kephart JO, Hanson JE, Kandasamy N, Jiang G. Power and performance management of virtualized computing environments via lookahead control. Cluster Computing 2009; 12(1):1–15.</p></blockquote><p>另一篇文献同样说到这个事情，出自 Google 研究员的关于 CPU 到能耗的经验曲线模型：</p><blockquote><p>Fan, Xiaobo, W. D. Weber, and L. A. Barroso. “Power provisioning for a warehouse-sized computer.” Acm Sigarch Computer Architecture News 35.2(2007):13-23.</p></blockquote><p>形式化描述为：</p><p>$$<br>P_{CPU}(u) = \alpha (2u - u^r) + \sigma<br>$$<br>思路都是用 CPU 能耗直接替代整机能耗。这个一方面确实是 CPU 在能耗方面占了主导，另一方面，则是由于分析的便捷性。</p><p>当然，对能耗模型的调研，觉得这篇文章的说法比较靠谱：</p><blockquote><p>Kansal, Aman, et al. “Virtual machine power metering and provisioning.” Acm Symposium on Cloud Computing ACM, 2010:39-50.</p></blockquote><p>CPU 大约占了 60% 的能耗，其余的能耗大户包括 RAM 和磁盘。但是要对 CloudSim 进行扩展，不修改 <code>power</code> 包里的内容估计是做不到了。</p><p>另外，对于多核架构来说，简单的线性模型也是很难说服的，在论文的实验部分，作者意识到这个问题，因此，还引用了标准组织 <a href="http://www.spec.org/power_ssj2008/" target="_blank" rel="noopener">SPECPower 2008</a> 公布的季度各主流服务器厂商的服务器 CPU 利用率和功耗的对应表作为关系映射。</p><p>由于动态调度，涉及到一台物理主机服务多个 VM 的情况。大多数论文认为虚拟机放置是一种装箱问题，但实际上一台物理机可以服务的 VM 数目应该是不确定的。但是，要考虑“过载”（overload）的情况，作为一种性能损失的衡量。论文认为过载是由于所分配的 VM 都满载以后，可能违反一次 SLA（服务等级协定）。而这个定义感觉是不清晰的。实际上，物理核心数和 VM 要求的核心数可能存在不一致的情况。在典型的 Web 应用场景，实际上 CPU 满载的情况并不多，主要以 IO 处理为主。桌面应用满载的情况更低了，这个自己就可以验证。因此，多个 VM 共用一个核心也是完全可能的，也是资源极大化利用应该考虑的。</p><p>在后来修改版里，CloudSim 3.0 引入了 <code>VmSchedulerTimeSharedOverSubscription</code> 类对满载的虚拟机进行调度。但采用的是简单的分时调度，采用 MIPS （每秒指令数）来量度：</p><p>$$<br>MIPS_{VM} = \min \left( \frac{MIPS_{PM} }{n_{VM} }, MIPS_{VM} \right)<br>$$</p><p>随着 VM 的增加，每个 VM 获得的实际 MIPS 比所请求的 MIPS 少；而分配的 VM 较少时，单个 VM 最多的资源也只能是规定的资源量。然而这么定义在公平调度的意义上是合理的。但 VM 在实际的调度环境中，是可以进入休眠状态而基本不消耗资源，分配给该 VM 的资源可以被另一个资源所独占（优先级调度）。另外一点是调度器也没有考虑优先级的问题。</p>]]></content>
+    
+    <summary type="html">
+    
+      &lt;p&gt;CloudSim 的能耗模块是在 3.0 版本完善的。最早的工作可能在 2011 年到 2012 年之间，论文：&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;Anton Beloglazov, and Rajkumar Buyya, “&lt;a href=&quot;http://dx.doi.org/10.1002/cpe.1867&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;Optimal Online Deterministic Algorithms and Adaptive Heuristics for Energy and Performance Efficient Dynamic Consolidation of Virtual Machines in Cloud Data Centers&lt;/a&gt;”, Concurrency and Computation: Practice and Experience (CCPE), Volume 24, Issue 13, Pages: 1397-1420, John Wiley &amp;amp; Sons, Ltd, New York, USA, 2012&lt;/p&gt;
+&lt;/blockquote&gt;
+    
+    </summary>
+    
+    
+    
+      <category term="云计算" scheme="http://zhi.oschina.io/tags/%E4%BA%91%E8%AE%A1%E7%AE%97/"/>
+    
+      <category term="服务评估" scheme="http://zhi.oschina.io/tags/%E6%9C%8D%E5%8A%A1%E8%AF%84%E4%BC%B0/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>CloudSim 笔记（1） - 基本模拟实验</title>
+    <link href="http://zhi.oschina.io/archives/2016/06/23/cloudsim-1-getting-started.html"/>
+    <id>http://zhi.oschina.io/archives/2016/06/23/cloudsim-1-getting-started.html</id>
+    <published>2016-06-23T14:24:58.000Z</published>
+    <updated>2020-01-01T04:50:37.356Z</updated>
+    
+    <content type="html"><![CDATA[<p><a href="%5ECloudSim">CloudSim</a> 是在 2009 年提出的云计算模拟仿真软件。主要工作是模拟云计算模型，为了持续地解决云计算资源、应用负载模型、资源性能模型的性能评估问题而提出。 CloudSim 可以支持系统组件的系统级和行为建模，设计了包括数据中心、虚拟机、资源管理策略的基本接口，甚至支持云联盟模型。在 2010 年发表前， CloudSim 已经被 HP 等公司用作云资源供给的研究[2]<sup class="footnote-ref"><a href="#fn1" id="fnref1">[1]</a></sup>。</p><a id="more"></a><p>版本记录：</p><ul><li>1.0~2.0：对云计算基础设施的建设，支持数据中心、虚拟机、应用程序的仿真。</li><li>3.0：加入能耗模型辅助能耗分析（未来可能会给出详细分析）。</li><li>4.0：加入应用程序容器仿真的支持。</li></ul><p>CloudSim 的建模层次是在 IaaS 之上，包括了 Host、VM、Cloudlet 三层的建模。而负载的仿真，则是通过 Broker（在 CloudSim 里可以被视为用户）这个接口对 VM、Cloudlet、Utilization 三者的行为控制来实现的。</p><p>一个典型的 CloudSim 仿真实验，一般流程如下：</p><ol><li>初始化 DataCenter<ul><li>初始化数据中心的特性（例如费用信息）</li><li>初始化所管辖 Host 集群（包括 VM 分配策略、VM 使用策略，但是不分配 VM）</li></ul></li><li>初始化 Broker（用户）<ul><li>由用户进行 VM 集群申请（VM 分配策略由 DataCenter 决定）</li><li>并给定实验的 Cloudlet 队列（包括资源负载的仿真）</li></ul></li><li>调用 <code>CloudSim.startSimulation()</code> 进行实验</li><li>调用 <code>CloudSim.stopSimulation()</code> 结束实验</li></ol><p>如果没有设置 <code>CloudSim.terminateSimulation(cycles)</code> ，则 CloudSim 会在完成所有 Broker 的 Cloudlet 请求后结束，否则只执行到特定的周期数 <code>cycles</code> 。例子可以参看</p><p>CloudSim 支持在调用过程中动态地创建 Broker 以及相关的 VM 集群、Cloudlet 队列，可以在多线程中创建。但在线程中进行动态调度的时候，需要先使用 <code>CloudSim.pauseSimulation()</code> 暂停当前的调度工作，否则不能保证在某个时间点执行。</p><p>为什么不能直接在其他线程中更改 CloudSim 的仿真对象？</p><p>CloudSim 并不是一个直接的简单时钟循环来更新所有主机的状态。在 CloudSim 中，所有仿真实体（数据中心、主机、虚拟机、Cloudlet）都是 SimEntity 的子类，创建之初就会默认添加到 CloudSim 的对象池中，可以和所有其他节点进行通信（以ID为目标）。而这个对象池，由于连接着 CloudSim 的所有资源，也可以认为是一个网络结构，而其中的 SimEntity 就是网络中的节点。CloudSim 内部维护一个时钟，而每次遍历更新 SimEntity，但是 SimEntity 并不一定同步系统时间进行状态更新，而是等待时钟到某一个节点的时候才进行自身的更新。因此，如果直接使用多线程来修改仿真对象（例如 Datacenter、Host、VM 之类），可能会破坏状态的更新而导致错误的实验结果。因此，CloudSim 实际上是一个异步系统，<code>CloudSim.pauseSimulation()</code> 有点相当于一个同步锁，只有锁同步了，才能进行状态的更新。</p><p>而异步系统则是由 CloudSim 的本质决定的。试想象一个调度过程，调度算法是无法把自身拆解成多个步骤嵌入到模拟的时钟周期的。现在实现的调度算法，基本上都是封装为一个方法，方法执行了就输出结果了，如果这算是一个时钟周期，那单位有点大了。而如果真的把算法拆解成指令，做到处理器级别的精度模拟，那么对用户行为建模的 Cloudlet 就不合适了（Cloudlet 只描述了资源占用的百分比）。CloudSim 本质上是一种第代价模拟，它希望有些不重要的部分进行快进和忽略，如果真的做到了处理器级别精度的仿真，就相当于开了几个真的虚拟机来实验，这样做的代价显然违背了 CloudSim 的初衷。</p><p>如何模拟用户行为？</p><p>在 CloudSim 给出的例子中，负载的描述都过于简单了。CloudSim 中的负载单位是 Cloudlet（这个奇怪的单词估计是从 Applet 之类的词语引申而来的），作为一个负载的基本任务。 Cloudlet 的组成是执行的周期数、所需文件以及最重要的资源利用率模型。有了这些基础，一个 Cloudlet 可以认为是一个程序，或者用户的活动。如果要仿真的对象是程序的执行时间，那么 Cloudlet 可以被认为是单独的程序，如果要仿真的对象是用户活动，那么 Cloudlet 可以被抽象为用户活动。</p><p>和 VM 不一样，Cloudlet 在初始化后，并不会立即执行，而会根据 CloudletScheduler 来调度执行（队列/并行）。 CloudSim 提供了分时调度和分空间调度，分时调度里一个cloudlet 独占 VM 资源；而分空间调度，cloudlet 则分布在可用的核数里并行执行。因此，如果把 cloudlet 视作用户对资源利用的活动，应该把调度器设置为分时调度，并使 cloudlet 和 VM 一一对应，使得 cloudlet 独占 VM。</p><p>一个物理主机可以有多少个 VM ？</p><p>这个策略是可以进行调整的，在 CloudSim 1.0~2.0 的时候，一个物理机的资源数等于所分配的 VM 的资源数，否则分配失败。</p><hr class="footnotes-sep"><section class="footnotes"><ol class="footnotes-list"><li id="fn1" class="footnote-item"><p><a href="http://www.buyya.com/papers/CloudSim2010.pdf" target="_blank" rel="noopener">http://www.buyya.com/papers/CloudSim2010.pdf</a> <a href="#fnref1" class="footnote-backref">↩︎</a></p></li></ol></section>]]></content>
+    
+    <summary type="html">
+    
+      &lt;p&gt;&lt;a href=&quot;%5ECloudSim&quot;&gt;CloudSim&lt;/a&gt; 是在 2009 年提出的云计算模拟仿真软件。主要工作是模拟云计算模型，为了持续地解决云计算资源、应用负载模型、资源性能模型的性能评估问题而提出。 CloudSim 可以支持系统组件的系统级和行为建模，设计了包括数据中心、虚拟机、资源管理策略的基本接口，甚至支持云联盟模型。在 2010 年发表前， CloudSim 已经被 HP 等公司用作云资源供给的研究[2]&lt;sup class=&quot;footnote-ref&quot;&gt;&lt;a href=&quot;#fn1&quot; id=&quot;fnref1&quot;&gt;[1]&lt;/a&gt;&lt;/sup&gt;。&lt;/p&gt;
+    
+    </summary>
+    
+    
+    
+      <category term="云计算" scheme="http://zhi.oschina.io/tags/%E4%BA%91%E8%AE%A1%E7%AE%97/"/>
+    
+      <category term="服务评估" scheme="http://zhi.oschina.io/tags/%E6%9C%8D%E5%8A%A1%E8%AF%84%E4%BC%B0/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>记一次 Linux 权限故障</title>
+    <link href="http://zhi.oschina.io/archives/2016/05/26/linux-permission-error.html"/>
+    <id>http://zhi.oschina.io/archives/2016/05/26/linux-permission-error.html</id>
+    <published>2016-05-26T15:10:00.000Z</published>
+    <updated>2020-01-01T04:50:37.364Z</updated>
+    
+    <content type="html"><![CDATA[<p>想起今天的误操作还真的心有余悸，差点就要重新安装系统了。缘起想改变 <code>/data</code> 这个目录的所有者，结果手误运行了 <code>sudo chown zhi:zhi /</code> ，导致整个系统的权限都重置为当前用户 zhi ！这样会导致什么问题？看看这篇讨论： <a href="http://askubuntu.com/questions/452860/usr-bin-sudo-must-be-owned-by-uid-0-and-have-the-setuid-bit-set" target="_blank" rel="noopener">AskUbuntu: sudo 权限错误</a> ，会导致 <code>sudo</code> 命令无法执行、 SSH 服务器停止响应，无法安装软件，无法远程登录。糟糕的是，这台服务器还是一台远程主机，我无法直接重装系统或者进入“recovery mode”修复 root 权限。想着今天做的基础设施就要报废了，心里真不是滋味。</p><a id="more"></a><p>要解决这个问题，首先要从恢复最高管理员权限开始。由于现代 Linux 系统，例如 Ubuntu 系，都已经采用 <code>sudo</code> 方案并设置 root 密码为随机密码，直接 su 切换到 root 并不现实。而直接运行 <code>sudo</code> ，则会出现：</p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo: &#x2F;usr&#x2F;bin&#x2F;sudo must be owned by uid 0</span><br></pre></td></tr></table></figure><p>这个错误，多半是由于手误把 <code>/usr</code> 目录或者子目录的权限改变导致的了。</p><p>解决的思路很简单，就是把 <code>/usr/bin/sudo</code> 这个命令的权限复原。一种方法是进入 recovery mode，这种模式下，基本上可以随心所欲了，详情参见 <a href="http://askubuntu.com/questions/452860/usr-bin-sudo-must-be-owned-by-uid-0-and-have-the-setuid-bit-set" target="_blank" rel="noopener">AskUbuntu: sudo 权限错误</a> 。但是如果是远程主机，就没那么好办了。那么我们需要找到一些漏洞。而我这次是从 <code>/data</code> 这个共享的 NFS 目录开始的（幸亏 <strong>之前搭建 NFS 的时候没有设置权限</strong> ，否则可能无法挂载了）。</p><p>由于 NFS 共享目录可以保留权限，使用 <strong>另一台机器</strong> 挂载这个 NFS 目录，并且执行：</p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ sudo cp -a &#x2F;usr&#x2F;bin&#x2F;sudo &#x2F;data</span><br><span class="line">$ sudo cp -a &#x2F;usr&#x2F;lib&#x2F;sudo&#x2F;* &#x2F;data</span><br></pre></td></tr></table></figure><p>得到保留所有权限信息的 <code>sudo</code> 命令以及相关的库文件。</p><p>然后在原来的主机上，执行：</p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ rm &#x2F;usr&#x2F;bin&#x2F;sudo</span><br><span class="line">$ mv &#x2F;usr&#x2F;lib&#x2F;sudo &#x2F;usr&#x2F;local&#x2F;lib&#x2F;sudo.bak</span><br><span class="line">$ ln -s &#x2F;data &#x2F;usr&#x2F;lib&#x2F;sudo</span><br></pre></td></tr></table></figure><p>先删除 <code>/usr/bin/sudo</code> ，然后把 <code>/usr/lib</code> 目录用 <code>/data</code> 取代。由于运行 <code>sudo</code> 命令实际上会连接调用 <code>/usr/lib/sudo</code> 目录下的库，并且会检查库文件的权限，但是不检查 <code>/usr/lib/sudo</code> 目录的形式和权限，感觉这是个漏洞。但不管怎样，现在执行：</p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ &#x2F;data&#x2F;sudo</span><br></pre></td></tr></table></figure><p>成功了！</p><p>接下来就是一步步地利用 <code>/data/sudo</code> 命令恢复 <code>/usr/bin/sudo</code> 以及 <code>/usr/lib/sudo</code> 了：</p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ &#x2F;data&#x2F;sudo cp -a &#x2F;data&#x2F;sudo &#x2F;usr&#x2F;bin&#x2F;sudo</span><br><span class="line">$ &#x2F;data&#x2F;sudo chown -R root:root &#x2F;usr&#x2F;lib&#x2F;sudo.bak</span><br><span class="line">$ &#x2F;data&#x2F;sudo cp -a &#x2F;usr&#x2F;lib&#x2F;sudo.bak &#x2F;usr&#x2F;lib&#x2F;sudo</span><br></pre></td></tr></table></figure><p>至此，<code>sudo</code> 命令恢复完毕。接下来就是对照着原来的 Ubuntu，把其余权限错误的目录恢复为原来的权限了。其中一个至关重要的权限：</p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ sudo chown -R root:root &#x2F;var&#x2F;run&#x2F;ssh*</span><br></pre></td></tr></table></figure><p>恢复 SSH 服务，使得在断线后还可以重新连接（切记，因为网络状态不是谁都可以预料的 😓）。其余命令，参考 <a href="http://askubuntu.com/questions/265080/how-can-i-recover-from-chmod-r-a-wrx-command" target="_blank" rel="noopener">AskUbuntu: 恢复 /* 目录权限</a></p>]]></content>
+    
+    <summary type="html">
+    
+      &lt;p&gt;想起今天的误操作还真的心有余悸，差点就要重新安装系统了。缘起想改变 &lt;code&gt;/data&lt;/code&gt; 这个目录的所有者，结果手误运行了 &lt;code&gt;sudo chown zhi:zhi /&lt;/code&gt; ，导致整个系统的权限都重置为当前用户 zhi ！这样会导致什么问题？看看这篇讨论： &lt;a href=&quot;http://askubuntu.com/questions/452860/usr-bin-sudo-must-be-owned-by-uid-0-and-have-the-setuid-bit-set&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;AskUbuntu: sudo 权限错误&lt;/a&gt; ，会导致 &lt;code&gt;sudo&lt;/code&gt; 命令无法执行、 SSH 服务器停止响应，无法安装软件，无法远程登录。糟糕的是，这台服务器还是一台远程主机，我无法直接重装系统或者进入“recovery mode”修复 root 权限。想着今天做的基础设施就要报废了，心里真不是滋味。&lt;/p&gt;
+    
+    </summary>
+    
+    
+      <category term="杂记" scheme="http://zhi.oschina.io/categories/%E6%9D%82%E8%AE%B0/"/>
+    
+    
+      <category term="Linux" scheme="http://zhi.oschina.io/tags/Linux/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>建了个 repo 来存 OJ 代码</title>
+    <link href="http://zhi.oschina.io/archives/2016/04/10/interview-oj.html"/>
+    <id>http://zhi.oschina.io/archives/2016/04/10/interview-oj.html</id>
+    <published>2016-04-10T06:10:00.000Z</published>
+    <updated>2020-01-01T04:50:37.364Z</updated>
+    
+    <content type="html"><![CDATA[<p>前几天去哈尔滨玩，晚上的时候和叁说刷一下题吧——于是打开电脑，看了看，思路大致都明白，但一时写起来就 AC 却不容易。继微软实习笔试的代码也整理了一下，现在练习的笔试题目也不少了，把所有笔试、练习的代码都归入到一个 <a href="https://github.com/yfwz100/interview-oj" target="_blank" rel="noopener">git repo</a> 里，慢慢整理一下思路。欢迎大家来交流学习。 :)</p>]]></content>
+    
+    <summary type="html">
+    
+      
+      
+        &lt;p&gt;前几天去哈尔滨玩，晚上的时候和叁说刷一下题吧——于是打开电脑，看了看，思路大致都明白，但一时写起来就 AC 却不容易。继微软实习笔试的代码也整理了一下，现在练习的笔试题目也不少了，把所有笔试、练习的代码都归入到一个 &lt;a href=&quot;https://github.com/y
+      
+    
+    </summary>
+    
+    
+      <category term="找工作" scheme="http://zhi.oschina.io/categories/%E6%89%BE%E5%B7%A5%E4%BD%9C/"/>
+    
+    
+      <category term="笔试" scheme="http://zhi.oschina.io/tags/%E7%AC%94%E8%AF%95/"/>
+    
+      <category term="OJ" scheme="http://zhi.oschina.io/tags/OJ/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>2016 微软实习生笔试</title>
+    <link href="http://zhi.oschina.io/archives/2016/04/07/interv-microsoft-2016.html"/>
+    <id>http://zhi.oschina.io/archives/2016/04/07/interv-microsoft-2016.html</id>
+    <published>2016-04-07T15:10:00.000Z</published>
+    <updated>2020-01-01T04:50:37.364Z</updated>
+    
+    <content type="html"><![CDATA[<p>难度：★★★★</p><p>微软 4 月校招实习生笔试在昨天结束了，简单总结一下，<s>感觉难度不算很</s> ，对细节要求比较多、和产品（应用）结合的题目比较多。</p><p>题目地址：<a href="http://hihocoder.com/contest/mstest2016april1/problems" target="_blank" rel="noopener">mstest2016april1</a></p><p>共四题。</p><a id="more"></a><h1>Font Size</h1><p>第一题是一个最佳字体的问题，可以想象是 Word 等文本处理、阅读器用于适配屏幕时候采用的最佳匹配算法。我把这个题目处理为一个优化问题：设定优化目标、选定初始值、误差最小化迭代。目标函数如下：</p><p>$$ \sum_{i=0}^N \left \lceil a_i / \left \lfloor \frac{S}{W} \right \rfloor \right \rceil \leq \left \lfloor \frac{H}{S} \right \rfloor \cdot P$$</p><p>初值的选取根据：</p><p>$$ S_{max} =  \min \left (W, H, \left \lceil \frac{P \cdot H}{N}  \right \rceil \right )$$</p><p>这个是 S 的最大值了。由于 S 是一个整数，不断递减达到目标函数即可。</p><h1>403 Forbidden</h1><p>这道题基本上就是解释防火墙规则，如果熟悉网络配置的话，应该很快能够做出来。难点有两个：</p><ol><li>IP 地址转换成二进制，并进行截位匹配；</li><li>字符串的快速前缀搜索（前缀树？）。</li></ol><h1>Demo day</h1><p>第三题往后都没有完整做出来了。这道题的关键是找出最小的障碍物数目，这个数目并不那么直观可以得到。只要确定了一个地图和障碍物的分布，机器人走出这个地方只有一种可能，于是就想了个回溯的方法，当然，时间复杂度估计会很高。暂时还没有很好的方法……</p><blockquote><p>Update: 被提示了一下 DP，就想到递推方程了，我感觉只要涉及方格、最小等字样的题目，可以直接联想递推方程。从结果倒推，要达到这个方格，只有两种可能，从上方往下，或者从左方往右。于是，这个方程可以设定为：</p><p>$$<br>f(x,y,k) = \begin{cases}<br>\min ( f(x-1,y,k), f(x,y-1, \texttt{down}) + c(x, y+1) ) + b(x, y), k=\texttt{right} \<br>\min ( f(x,y-1,k), f(x-1,y, \texttt{right}) + c(x+1, y) ) + b(x, y), k=\texttt{down}<br>\end{cases}<br>$$</p><p>其中 $c(x,y)$ 表示此处是否需要增加一个 block 才能通行；而 $b(x, y)$ 表示此处是否已经有一个 block 。</p><p>剩下的事情就是遍历格子了……</p></blockquote><h1>Building in Sandbox</h1><p>第一反应是 MineCraft 游戏……然后发现确实是相关的。简单地说，就是模拟玩家进行城堡的建设，给定摆放砖块的坐标序列，要满足两个条件：</p><ol><li>相邻性：砖块和其他砖块相邻，或者直接放在地上（z 坐标为 1）；</li><li>可达性：可以从外面进入城堡放置砖块。</li></ol><p>实际上都和邻域搜索相关。做过计算机视觉的人，可能第一反应就是 FLANN 了。可达性的判断可能稍微麻烦一点。一个想法是从选定目标节点走出到最外围的城墙，如果可以走出去，就是可达的。</p>]]></content>
+    
+    <summary type="html">
+    
+      &lt;p&gt;难度：★★★★&lt;/p&gt;
+&lt;p&gt;微软 4 月校招实习生笔试在昨天结束了，简单总结一下，&lt;s&gt;感觉难度不算很&lt;/s&gt; ，对细节要求比较多、和产品（应用）结合的题目比较多。&lt;/p&gt;
+&lt;p&gt;题目地址：&lt;a href=&quot;http://hihocoder.com/contest/mstest2016april1/problems&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;mstest2016april1&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;共四题。&lt;/p&gt;
+    
+    </summary>
+    
+    
+      <category term="找工作" scheme="http://zhi.oschina.io/categories/%E6%89%BE%E5%B7%A5%E4%BD%9C/"/>
+    
+    
+      <category term="笔试" scheme="http://zhi.oschina.io/tags/%E7%AC%94%E8%AF%95/"/>
+    
+      <category term="OJ" scheme="http://zhi.oschina.io/tags/OJ/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>扫雷游戏</title>
+    <link href="http://zhi.oschina.io/archives/2016/04/03/game-minesweeper.html"/>
+    <id>http://zhi.oschina.io/archives/2016/04/03/game-minesweeper.html</id>
+    <published>2016-04-03T03:10:00.000Z</published>
+    <updated>2020-01-01T04:50:37.364Z</updated>
+    
+    <content type="html"><![CDATA[<p>刷题无聊了，做了个『扫雷』游戏。简单难度，10x10 地图加上 10 个随机地雷。最大联通区域这种题估计就是从『扫雷』衍生出来的。顺便试了试 d3.js 以及 SVG 动画，还挺简单的。</p><iframe width="100%" height="300px" frameborder="0" src="http://yfwz100.github.io/minesweeper/"></iframe><p>源码：<a href="https://github.com/yfwz100/minesweeper" target="_blank" rel="noopener">https://github.com/yfwz100/minesweeper</a></p>]]></content>
+    
+    <summary type="html">
+    
+      
+      
+        &lt;p&gt;刷题无聊了，做了个『扫雷』游戏。简单难度，10x10 地图加上 10 个随机地雷。最大联通区域这种题估计就是从『扫雷』衍生出来的。顺便试了试 d3.js 以及 SVG 动画，还挺简单的。&lt;/p&gt;
+&lt;iframe width=&quot;100%&quot; height=&quot;300px&quot; fra
+      
+    
+    </summary>
+    
+    
+      <category term="游戏" scheme="http://zhi.oschina.io/categories/%E6%B8%B8%E6%88%8F/"/>
+    
+    
+      <category term="游戏" scheme="http://zhi.oschina.io/tags/%E6%B8%B8%E6%88%8F/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>某公司笔试题目</title>
+    <link href="http://zhi.oschina.io/archives/2016/03/25/interv-worksapp-2016.html"/>
+    <id>http://zhi.oschina.io/archives/2016/03/25/interv-worksapp-2016.html</id>
+    <published>2016-03-25T15:11:00.000Z</published>
+    <updated>2020-01-01T04:50:51.584Z</updated>
+    
+    <content type="html"><![CDATA[<p>难度：★★★★</p><p>不得不说某公司真低调，这样就不说是什么公司了。笔试的形式很简单，两道题，在 3 天内完成其中的一道。于是也就分享其中一道吧……</p><h1>第一道题：最大价值链</h1><p>这道题使我想起了以前在 POJ 里做过的一道题。给定一个迷宫（矩阵），负值代表墙，从右下角开始，累加走过的路（不可回头），直到走到最右边（或者右上角）。并且，这个题还有一个『传送』功能，当向下穿越到上面的时候，当前结果清零，以下一步的方案计算收益。</p><p>这道题一看就是动态规划的思想，但是怎么个动态规划法，还是值得商量的。一开始开错题。由于不可以向左走，所以往右走就是自由的。但是如果往上走或者往下走，下一步就不能是上一个动作的相反方向了。</p><p>既然是动态规划，那么我们就考虑一下状态方程吧…… 设当前坐标为 $(x, y)$ 、方向为 $d$。那么递推方程就是：</p><p>$$ F(x,y,d)= \begin{cases}<br>M_{(x,y)}+\max{ F(i+1,j,0), F(i, j-1,1), F(i,j+1,2) },  &amp; d=0 \<br>M_{(x,y)}+\max{ F(i+1,j,0), F(i,j-1,1) }, &amp; d=1 \<br>M_{(x,y)}\max{ F(i+1,j,0), F(i,j+1,2) },  &amp; d=2<br>\end{cases} $$</p><p>并且，</p><p>$$ d = \begin{cases} 0, \text{from right} \ 1, \text{from up} \ 2, \text{from down} \end{cases} $$</p><p>好像有什么不对——还没有考虑边界的情况（穿越），如果考虑穿越，而且不能走重复的路，那么情况就复杂很多了。</p><p>那么我们再定义三个执行条件：</p><ol><li>如果没有路了，即遇到的方块 $M_{(x,y)}=-1$ ：<ol><li>如果在边界，返回 0 ；</li><li>如果不在边界，返回 -1 （死胡同）；</li></ol></li><li>否则，<ol><li>如果不在边界，尝试向上、下、右的顺序，按照上述状态方程找路；</li><li>如果当前是边界，并且上一步没找到路线，则设置此刻最大的价值是自身；</li><li>如果在边界，尝试穿越，并与上一步获得的值对比，取最大值。</li></ol></li></ol><p>如果考虑上 $(x,y)$ 的穿越问题，那么就困难很多了。另外，穿越以后，还可能出现走重复的路的可能。这样就会导致死循环。因此，这里要考虑的不仅仅是最大价值，还有非重复路线，即维护一个走过路线的集合。</p><p>写了近一晚才勉强跑出来，Java 和 C++ 的非多值返回算法，使得这份代码传递了很多『输出参数』，调试很不容易……做完都不知道有没有漏掉情况。</p><h1>小结</h1><p>总的来说，这次笔试题很考算法的基础知识、对细节的捕捉和缜密的逻辑，这道题初看就是 Medium 类型的，但是实际上难度系数还是很高的。</p><p>再感叹一下，这家公司真的很低调。</p>]]></content>
+    
+    <summary type="html">
+    
+      
+      
+        &lt;p&gt;难度：★★★★&lt;/p&gt;
+&lt;p&gt;不得不说某公司真低调，这样就不说是什么公司了。笔试的形式很简单，两道题，在 3 天内完成其中的一道。于是也就分享其中一道吧……&lt;/p&gt;
+&lt;h1&gt;第一道题：最大价值链&lt;/h1&gt;
+&lt;p&gt;这道题使我想起了以前在 POJ 里做过的一道题。给定一个迷宫（
+      
+    
+    </summary>
+    
+    
+      <category term="找工作" scheme="http://zhi.oschina.io/categories/%E6%89%BE%E5%B7%A5%E4%BD%9C/"/>
+    
+    
+      <category term="笔试" scheme="http://zhi.oschina.io/tags/%E7%AC%94%E8%AF%95/"/>
+    
+      <category term="OJ" scheme="http://zhi.oschina.io/tags/OJ/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>2016 华为笔试</title>
+    <link href="http://zhi.oschina.io/archives/2016/03/19/interv-huawei-2016.html"/>
+    <id>http://zhi.oschina.io/archives/2016/03/19/interv-huawei-2016.html</id>
+    <published>2016-03-19T15:10:00.000Z</published>
+    <updated>2020-01-01T04:50:37.364Z</updated>
+    
+    <content type="html"><![CDATA[<p>难度：★★★</p><p>今年华为笔试以普通 OJ 题目为主。分为三体：第一题交错数列排序；第二题 HDU2516 取石子游戏；第三题是黑白点配对问题。每题根据通过的测试用例比例来给分，大概 100 分以上可以面试。</p><a id="more"></a><p>第一题是交错数列，应该是这些题里面最简单的。如果用最简单的冒泡法排序，两个循环间可以直接排序两个数组，这样的效率最高。又或者封装间隔排序的方法，对奇数、偶数分别排序，时间复杂度依然是 O(n) 。</p><p>第二题是 HDU2516 的原题，刷 OJ 的同学估计很熟悉了。解法就是斐波那契数列，写前 10 个应该可以找出规律。不过时间太赶，没来得及想。至于深入研究，实际上是一个动态规划问题，见 <a href="http://www.cnblogs.com/kuangbin/p/3205070.html" target="_blank" rel="noopener">HDU 2516 取石子游戏(FIB博弈)</a> 。</p><p>第三题是寻找给定两对点集中的最大配对数目。这题想了一会，一开始想用第一题的交错数列的方式来找点对，但是发现二维空间不像一维空间，比较大小没有传递性。于是，想了另一个策略，找出所有黑点能够对应的白点，然后按照对应的白点的数量升序遍历，不断排除黑白点的配对，最终得出最大的匹配数目。这样做应该算是一个贪心的策略，可是最终还是超时了（时间复杂度 O(n^2)，确实有点夸张了）。没找到其他 OJ 的实现，暂时也找不到很好的答案。</p>]]></content>
+    
+    <summary type="html">
+    
+      &lt;p&gt;难度：★★★&lt;/p&gt;
+&lt;p&gt;今年华为笔试以普通 OJ 题目为主。分为三体：第一题交错数列排序；第二题 HDU2516 取石子游戏；第三题是黑白点配对问题。每题根据通过的测试用例比例来给分，大概 100 分以上可以面试。&lt;/p&gt;
+    
+    </summary>
+    
+    
+    
+      <category term="笔试" scheme="http://zhi.oschina.io/tags/%E7%AC%94%E8%AF%95/"/>
+    
+      <category term="OJ" scheme="http://zhi.oschina.io/tags/OJ/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>网易互动娱乐实习笔试</title>
+    <link href="http://zhi.oschina.io/archives/2016/03/18/interv-netease-2016.html"/>
+    <id>http://zhi.oschina.io/archives/2016/03/18/interv-netease-2016.html</id>
+    <published>2016-03-18T14:20:00.000Z</published>
+    <updated>2020-01-01T04:50:37.364Z</updated>
+    
+    <content type="html"><![CDATA[<p>难度：★★★</p><p>我知道网易互动娱乐实习生笔试题目的时候，实习生笔试已经结束了。同学说都没做出来，好奇之下尝试做了一下，感觉确实不容易，但是穷举法应该可以过一些测试用例的。</p><a id="more"></a><p>题目地址戳<a href="http://hihocoder.com/contest/ntest2016spring1/problems" target="_blank" rel="noopener">这里</a>。</p><h1>题目1 ：电子数字</h1><p>这个问题应该是这三题里最简单的一道吧，要求求出可能的数列组合的个数。对于这题，我把问题转为两个步骤：</p><ol><li>从输入列表中提取每个电子数字所占位置代表的潜在候选数字；</li><li>遍历各个数位上的候选数字，生成候选数字来比较，最终得出组合的个数。</li></ol><p>生成候选数字的步骤我直接使用 HashSet 来做数列交集，在输入的时候就生成各个数位上的候选数字。如果说 HashSet 的 contains 方法是 O(1) 的，那么这步的复杂度应该是 O(k)，总体来说就是 O(9k)。而对于第二步，遍历……遍历应该是可行的，毕竟题目规定了最多只是 5 位数，对于 1Ghz 的电脑来说，在 1s 内完全遍历 10^5 个数字组合也不难。</p><h1>题目2 ：源代码编译</h1><p>源码编译这个题实际上我在做阿里移动推荐算法比赛的时候做过——整理文件的依赖关系并最终生成文件的编译顺序表。当时处理的是 SQL 文件依赖，因为算法比赛的时候各个人自己独立地创建表，而最终需要一份可以提交的 SQL 文件。当时没有考虑算法复杂度，这次考虑了一下，实际上就是一种带有特定依赖的排序。稍微修改一下快排的比较函数，应该很轻易就能解决这道题。可惜测评时间已过，无法验证了。</p><h1>题目3 ：画线</h1><p>这道题有很好的应用背景——以前做游戏的时候也想过，怎样可以合并某些操作从而优化整个执行流程。不过以前也就想想，没实际执行过。</p><p>这道题的考虑也比较简单，每次获得输入后，求出线段的斜率 k ，找出之前已经输入的斜率为 k 的线段集合，找出该直线是否可以合并到已经输入的线段集合中。这里可以优化的地方估计是建立斜率 k 的线段集合的索引，使得新加入的线段可以快速地判断能否合并，这样，时间复杂度就可以近似线性了。不过，暴力解的话，应该就是 O(n^2) 。</p><p>我想，对于玩 ACM-ICPC 的同学来说，应该是小 case 吧，努力学习ing。</p>]]></content>
+    
+    <summary type="html">
+    
+      &lt;p&gt;难度：★★★&lt;/p&gt;
+&lt;p&gt;我知道网易互动娱乐实习生笔试题目的时候，实习生笔试已经结束了。同学说都没做出来，好奇之下尝试做了一下，感觉确实不容易，但是穷举法应该可以过一些测试用例的。&lt;/p&gt;
+    
+    </summary>
+    
+    
+      <category term="找工作" scheme="http://zhi.oschina.io/categories/%E6%89%BE%E5%B7%A5%E4%BD%9C/"/>
+    
+    
+      <category term="笔试" scheme="http://zhi.oschina.io/tags/%E7%AC%94%E8%AF%95/"/>
+    
+      <category term="OJ" scheme="http://zhi.oschina.io/tags/OJ/"/>
+    
+  </entry>
+  
+</feed>
