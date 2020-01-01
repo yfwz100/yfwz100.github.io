@@ -6,7 +6,7 @@
   <link href="/atom.xml" rel="self"/>
   
   <link href="http://zhi.oschina.io/"/>
-  <updated>2020-01-01T04:50:51.580Z</updated>
+  <updated>2020-01-01T14:53:02.909Z</updated>
   <id>http://zhi.oschina.io/</id>
   
   <author>
@@ -15,6 +15,27 @@
   </author>
   
   <generator uri="https://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>Camunda BPM 平台试用感受</title>
+    <link href="http://zhi.oschina.io/archives/2020/01/01/camunda-review.html"/>
+    <id>http://zhi.oschina.io/archives/2020/01/01/camunda-review.html</id>
+    <published>2020-01-01T14:32:59.000Z</published>
+    <updated>2020-01-01T14:53:02.909Z</updated>
+    
+    <content type="html"><![CDATA[<p>新年第一篇文章，谈一下最近对基于 BPMN 2.0 标准实现的 Camunda BPM 平台的使用感受。简单地说，作为一个流程自动化引擎，Camunda 应该是比较成熟的，可以嵌入到流行的 Java 应用服务器中；然而，作为一个流程开发平台，集成度还比较低……</p><a id="more"></a><p>简单介绍一下，<a href="https://camunda.com/" target="_blank" rel="noopener" title="Camunda 公司">Camunda</a> BPM 平台是一个老牌的基于 BPMN 2.0 标准实现的 BPMN 自动化执行流程，最初的开发者是基于 Activiti 分支开发的，而 Activiti 则是基于更早前的 jBPM 流程引擎（现在是归属 JBoss 旗下）。可以说目前流行的开源的三大 BPMN 实现的流程自动化引擎都和最初开源的 jBPM 有一定的联系。</p><p>Camunda 的使用较简单，直接按照 <a href="https://docs.camunda.org/get-started/" target="_blank" rel="noopener">Getting Started</a> 中缩写的内容基本上两小时就可以编写完它的例子。其中使用到的工具有 Camunda Modeler、Eclipse、Camunda Server 等。虽然 Camunda BPM 称自己是一个平台，但给人的感觉更像是一个实现 BPMN 平台的程序库，很多内容还是需要自己手写。</p><p>归纳一下，一般的流程的开发过程如下：</p><ol><li>模型设计：使用 Camunda Modeler 定义模型，并输出 bpmn 文件；</li><li>页面设计：编写页面支持流程的显示、输入、跳转；</li><li>程序编写：利用 Camunda BPM SDK 编写 Java 程序：<ol><li>使用 SDK 提供的方法编写代码初始化；</li><li>调用 bpmn 文件以应用设计好的流程；</li><li>生成 war 包；</li></ol></li><li>流程运维：由运维人员部署到 Java 应用服务器（例如 Tomcat ）上。</li></ol><p>优点：</p><ul><li>使用比较灵活：能够整合到现有的系统中作为插件存在，能够自己决定部署的方式；</li><li>标准支持全面：基本上完全支持 BPMN 2.0 标准，且配套文档比较丰富。</li></ul><p>缺点：</p><ul><li>至少需要 5 个不同的人员（模型设计、页面编写、程序编写、运维以及集成人员）分别使用不同的工具进行分工配合；</li><li>工具之间的变量传递靠文档约束，工具之间没有变量提示，例如需要看完文档才了解变量传递和使用方法。</li></ul>]]></content>
+    
+    <summary type="html">
+    
+      &lt;p&gt;新年第一篇文章，谈一下最近对基于 BPMN 2.0 标准实现的 Camunda BPM 平台的使用感受。简单地说，作为一个流程自动化引擎，Camunda 应该是比较成熟的，可以嵌入到流行的 Java 应用服务器中；然而，作为一个流程开发平台，集成度还比较低……&lt;/p&gt;
+    
+    </summary>
+    
+    
+    
+      <category term="BPMN" scheme="http://zhi.oschina.io/tags/BPMN/"/>
+    
+  </entry>
   
   <entry>
     <title>Gradient Boosting 学习笔记</title>
@@ -455,32 +476,6 @@
     
     </summary>
     
-    
-    
-      <category term="笔试" scheme="http://zhi.oschina.io/tags/%E7%AC%94%E8%AF%95/"/>
-    
-      <category term="OJ" scheme="http://zhi.oschina.io/tags/OJ/"/>
-    
-  </entry>
-  
-  <entry>
-    <title>网易互动娱乐实习笔试</title>
-    <link href="http://zhi.oschina.io/archives/2016/03/18/interv-netease-2016.html"/>
-    <id>http://zhi.oschina.io/archives/2016/03/18/interv-netease-2016.html</id>
-    <published>2016-03-18T14:20:00.000Z</published>
-    <updated>2020-01-01T04:50:37.364Z</updated>
-    
-    <content type="html"><![CDATA[<p>难度：★★★</p><p>我知道网易互动娱乐实习生笔试题目的时候，实习生笔试已经结束了。同学说都没做出来，好奇之下尝试做了一下，感觉确实不容易，但是穷举法应该可以过一些测试用例的。</p><a id="more"></a><p>题目地址戳<a href="http://hihocoder.com/contest/ntest2016spring1/problems" target="_blank" rel="noopener">这里</a>。</p><h1>题目1 ：电子数字</h1><p>这个问题应该是这三题里最简单的一道吧，要求求出可能的数列组合的个数。对于这题，我把问题转为两个步骤：</p><ol><li>从输入列表中提取每个电子数字所占位置代表的潜在候选数字；</li><li>遍历各个数位上的候选数字，生成候选数字来比较，最终得出组合的个数。</li></ol><p>生成候选数字的步骤我直接使用 HashSet 来做数列交集，在输入的时候就生成各个数位上的候选数字。如果说 HashSet 的 contains 方法是 O(1) 的，那么这步的复杂度应该是 O(k)，总体来说就是 O(9k)。而对于第二步，遍历……遍历应该是可行的，毕竟题目规定了最多只是 5 位数，对于 1Ghz 的电脑来说，在 1s 内完全遍历 10^5 个数字组合也不难。</p><h1>题目2 ：源代码编译</h1><p>源码编译这个题实际上我在做阿里移动推荐算法比赛的时候做过——整理文件的依赖关系并最终生成文件的编译顺序表。当时处理的是 SQL 文件依赖，因为算法比赛的时候各个人自己独立地创建表，而最终需要一份可以提交的 SQL 文件。当时没有考虑算法复杂度，这次考虑了一下，实际上就是一种带有特定依赖的排序。稍微修改一下快排的比较函数，应该很轻易就能解决这道题。可惜测评时间已过，无法验证了。</p><h1>题目3 ：画线</h1><p>这道题有很好的应用背景——以前做游戏的时候也想过，怎样可以合并某些操作从而优化整个执行流程。不过以前也就想想，没实际执行过。</p><p>这道题的考虑也比较简单，每次获得输入后，求出线段的斜率 k ，找出之前已经输入的斜率为 k 的线段集合，找出该直线是否可以合并到已经输入的线段集合中。这里可以优化的地方估计是建立斜率 k 的线段集合的索引，使得新加入的线段可以快速地判断能否合并，这样，时间复杂度就可以近似线性了。不过，暴力解的话，应该就是 O(n^2) 。</p><p>我想，对于玩 ACM-ICPC 的同学来说，应该是小 case 吧，努力学习ing。</p>]]></content>
-    
-    <summary type="html">
-    
-      &lt;p&gt;难度：★★★&lt;/p&gt;
-&lt;p&gt;我知道网易互动娱乐实习生笔试题目的时候，实习生笔试已经结束了。同学说都没做出来，好奇之下尝试做了一下，感觉确实不容易，但是穷举法应该可以过一些测试用例的。&lt;/p&gt;
-    
-    </summary>
-    
-    
-      <category term="找工作" scheme="http://zhi.oschina.io/categories/%E6%89%BE%E5%B7%A5%E4%BD%9C/"/>
     
     
       <category term="笔试" scheme="http://zhi.oschina.io/tags/%E7%AC%94%E8%AF%95/"/>

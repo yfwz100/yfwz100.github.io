@@ -1,0 +1,53 @@
+<!DOCTYPE html><html><head><meta charset="utf-8"><title>植的博客</title><meta name="viewport" content="width=device-width, initial-scale=1"><link rel="stylesheet" href="//cdn.bootcss.com/font-awesome/4.6.3/css/font-awesome.min.css">
+<link rel="stylesheet" href="/css/base.css">
+<script type="text/javascript">(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?ad6863b0ceb3ebc04afed41dc020bd78";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();</script><script type="text/x-mathjax-config">MathJax.Hub.Config({
+  tex2jax: {
+    inlineMath: [['$','$'], ['\\(','\\)']],
+    displayMath: [['$$', '$$'], ['\\[','\\]']],
+    processEscapes: true,
+    processEnvironments: true,
+    skipTags: ['script', 'noscript', 'style', 'textarea', 'pre','code'],
+    TeX: { equationNumbers: { autoNumber: "AMS" },
+         extensions: ["AMSmath.js", "AMSsymbols.js"] }
+  }
+});</script><script src="//cdn.bootcss.com/mathjax/2.6.1/MathJax.js?config=default"></script><meta name="generator" content="Hexo 4.2.0"><link rel="alternate" href="/atom.xml" title="植的博客" type="application/atom+xml">
+</head><body><header><div class="page"><nav><ul class="brand"><li><a href="/">植的博客</a></li></ul><ul class="blog"><!-- List other items on menu.--><li class="menu-item"><a class="on" href="/archives">存档</a></li><li class="menu-item"><a href="/tags">标签</a></li><li class="menu-item"><a href="https://sanduck.github.io/about/" target="_blank" rel="noopener">梦</a></li></ul><ul class="social"><li><a class="fa fa-github" href="https://github.com/yfwz100" target="_blank" rel="noopener"><i class="sr-only">github</i></a></li><li><a class="fa fa-git" href="http://git.oschina.net/zhi" target="_blank" rel="noopener"><i class="sr-only">git</i></a></li><li><a class="fa fa-weibo" href="http://weibo.com/yfwz100" target="_blank" rel="noopener"><i class="sr-only">weibo</i></a></li></ul></nav></div></header><div class="post wrap"><div class="page"><div class="post-heading"><h1>Camunda BPM 平台试用感受</h1></div><div class="post-body"><p>新年第一篇文章，谈一下最近对基于 BPMN 2.0 标准实现的 Camunda BPM 平台的使用感受。简单地说，作为一个流程自动化引擎，Camunda 应该是比较成熟的，可以嵌入到流行的 Java 应用服务器中；然而，作为一个流程开发平台，集成度还比较低……</p>
+<a id="more"></a>
+<p>简单介绍一下，<a href="https://camunda.com/" target="_blank" rel="noopener" title="Camunda 公司">Camunda</a> BPM 平台是一个老牌的基于 BPMN 2.0 标准实现的 BPMN 自动化执行流程，最初的开发者是基于 Activiti 分支开发的，而 Activiti 则是基于更早前的 jBPM 流程引擎（现在是归属 JBoss 旗下）。可以说目前流行的开源的三大 BPMN 实现的流程自动化引擎都和最初开源的 jBPM 有一定的联系。</p>
+<p>Camunda 的使用较简单，直接按照 <a href="https://docs.camunda.org/get-started/" target="_blank" rel="noopener">Getting Started</a> 中缩写的内容基本上两小时就可以编写完它的例子。其中使用到的工具有 Camunda Modeler、Eclipse、Camunda Server 等。虽然 Camunda BPM 称自己是一个平台，但给人的感觉更像是一个实现 BPMN 平台的程序库，很多内容还是需要自己手写。</p>
+<p>归纳一下，一般的流程的开发过程如下：</p>
+<ol>
+<li>模型设计：使用 Camunda Modeler 定义模型，并输出 bpmn 文件；</li>
+<li>页面设计：编写页面支持流程的显示、输入、跳转；</li>
+<li>程序编写：利用 Camunda BPM SDK 编写 Java 程序：
+<ol>
+<li>使用 SDK 提供的方法编写代码初始化；</li>
+<li>调用 bpmn 文件以应用设计好的流程；</li>
+<li>生成 war 包；</li>
+</ol>
+</li>
+<li>流程运维：由运维人员部署到 Java 应用服务器（例如 Tomcat ）上。</li>
+</ol>
+<p>优点：</p>
+<ul>
+<li>使用比较灵活：能够整合到现有的系统中作为插件存在，能够自己决定部署的方式；</li>
+<li>标准支持全面：基本上完全支持 BPMN 2.0 标准，且配套文档比较丰富。</li>
+</ul>
+<p>缺点：</p>
+<ul>
+<li>至少需要 5 个不同的人员（模型设计、页面编写、程序编写、运维以及集成人员）分别使用不同的工具进行分工配合；</li>
+<li>工具之间的变量传递靠文档约束，工具之间没有变量提示，例如需要看完文档才了解变量传递和使用方法。</li>
+</ul>
+</div><div class="post-meta">由 <span class="author"><a href="mailto: yfwz100@yeah.net">Zhi</a></span> 写于 <span class="date">2020年1月1日</span> ·<span class="tags"><a class="tag" href="/tags/BPMN/">BPMN</a></span></div><div class="cloud-tie-wrapper" id="cloud-tie-wrapper"></div><script type="text/javascript" src="https://img1.cache.netease.com/f2e/tie/yun/sdk/loader.js"></script><script type="text/javascript">var cloudTieConfig = {
+  url: document.location.href, 
+  sourceId: "",
+  productKey: "2311812cfc39469b8c071ba8f99d562e",
+  target: "cloud-tie-wrapper"
+};
+var yunManualLoad = true;
+Tie.loader("aHR0cHM6Ly9hcGkuZ2VudGllLjE2My5jb20vcGMvbGl2ZXNjcmlwdC5odG1s", true);</script><script type="text/javascript" src="https://img1.cache.netease.com/f2e/tie/yun/sdk/loader.js"></script></div></div><footer><div class="page"><address class="author">&copy; Zhi</address><div class="hexo-powered">博客由 <a href="http://www.hexo.io" target="_blank" rel="noopener">Hexo</a> 驱动</div><div class="rss"><a class="fa fa-rss-square" href="/atom.xml"></a></div></div></footer></body></html>
